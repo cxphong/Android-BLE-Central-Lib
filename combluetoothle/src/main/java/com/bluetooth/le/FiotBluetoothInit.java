@@ -23,34 +23,41 @@ public class FiotBluetoothInit {
     private static final String TAG = "FiotBluetoothInit";
     private static final int REQUEST_ENABLE_BT = 2006;
     private static final int REQUEST_PERMISSION = 2007;
-    private Context context;
+    private static Context context;
+    private static FiotBluetoothInitListener listener;
 
-    public FiotBluetoothInit(Context context) {
-        this.context = context;
+    public interface FiotBluetoothInitListener {
+        void completed();
     }
 
-    private void checkSupportBle() throws  NotSupportBleException {
+    private static void checkSupportBle() throws NotSupportBleException {
         if (!isBleHardwareAvailable()) {
             throw new NotSupportBleException(context.getResources().getString(R.string.exception_not_support_ble));
         }
     }
 
-    private void checkBluetoothAndEnablePermission() {
+    private static void checkBluetoothAndEnablePermission() {
         if (!isBluetoothEnabled()) {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            ((Activity)context).startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+            ((Activity) context).startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
         } else {
-            requestPermission();
+            if (hasPermission()) {
+                listener.completed();
+            } else {
+                requestPermission();
+            }
         }
     }
 
 
-    public void init() throws NotSupportBleException, NotFromActivity {
-        if (!(context instanceof Activity)) {
+    public static void init(Context c, FiotBluetoothInitListener l) throws NotSupportBleException, NotFromActivity {
+        if (!(c instanceof Activity)) {
             throw new NotFromActivity("Given Context must be an Activity");
         }
 
-        ((Activity)context).getApplication().registerActivityLifecycleCallbacks(activityLifecycleCallbacks);
+        context = c;
+        listener = l;
+        ((Activity) context).getApplication().registerActivityLifecycleCallbacks(activityLifecycleCallbacks);
 
         checkSupportBle();
         checkBluetoothAndEnablePermission();
@@ -61,7 +68,7 @@ public class FiotBluetoothInit {
      *
      * @return true on support, false on not.
      */
-    public boolean isBleHardwareAvailable() {
+    private static boolean isBleHardwareAvailable() {
         return context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE);
     }
 
@@ -70,25 +77,33 @@ public class FiotBluetoothInit {
      *
      * @return true on enable, false on disable
      */
-    public boolean isBluetoothEnabled() {
+    private static boolean isBluetoothEnabled() {
         final BluetoothManager bluetoothManager =
                 (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
         return bluetoothManager.getAdapter().isEnabled();
     }
 
-    private void requestPermission() {
+    private static boolean hasPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (context.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
                     context.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                ((Activity) context).requestPermissions(new String[]{
-                        Manifest.permission.ACCESS_COARSE_LOCATION,
-                        Manifest.permission.ACCESS_FINE_LOCATION,
-                }, REQUEST_PERMISSION);
+                return false;
             }
+        }
+
+        return true;
+    }
+
+    private static void requestPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            ((Activity) context).requestPermissions(new String[]{
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+            }, REQUEST_PERMISSION);
         }
     }
 
-    Application.ActivityLifecycleCallbacks activityLifecycleCallbacks = new Application.ActivityLifecycleCallbacks() {
+    static Application.ActivityLifecycleCallbacks activityLifecycleCallbacks = new Application.ActivityLifecycleCallbacks() {
         @Override
         public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
 

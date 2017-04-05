@@ -34,7 +34,7 @@ public class FioTScanManager {
         this.filter = filter;
     }
 
-    public void start(ScanManagerListener listener, boolean ignoreExist) {
+    public void start(boolean ignoreExist, ScanManagerListener listener) {
         this.ignoreExist = ignoreExist;
         this.listener = listener;
         ble.startScanning();

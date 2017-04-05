@@ -117,8 +117,7 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener {
 
     public void reConnect(final String oldAddress, final String oldName, final int timeoutmill) {
         scanManager = new FioTScanManager(mContext);
-        scanManager.setFilter("SOLAR");
-        scanManager.start(new FioTScanManager.ScanManagerListener() {
+        scanManager.start(true, new FioTScanManager.ScanManagerListener() {
             @Override
             public void onFoundDevice(String name, String address, int type, int bondState, int rssi) {
                 if (address.equalsIgnoreCase(oldAddress) ||
@@ -136,7 +135,7 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener {
                     }
                 }
             }
-        }, true);
+        });
     }
 
     public int write(FioTBluetoothCharacteristic c,
