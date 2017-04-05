@@ -1,0 +1,26 @@
+[
+    {
+        "outputFile": "/Users/caoxuanphong/Documents/PROJECT/Android-BLE/combluetoothle/build/intermediates/incremental/mergeReleaseResources/merged.dir/values-xlarge-land-v4/values-xlarge-land-v4.xml",
+        "map": [
+            {
+                "to": {
+                    "startLine": 2,
+                    "startColumn": 4,
+                    "startOffset": 55,
+                    "endColumn": 63,
+                    "endOffset": 114
+                },
+                "from": {
+                    "file": "/Users/caoxuanphong/.android/build-cache/9f9c90a03a124bfe4dcdeffe6918e6f7ea80de8f/output/res/values-xlarge-land/values-xlarge-land.xml",
+                    "position": {
+                        "startLine": 4,
+                        "startColumn": 4,
+                        "startOffset": 295,
+                        "endColumn": 63,
+                        "endOffset": 354
+                    }
+                }
+            }
+        ]
+    }
+]
