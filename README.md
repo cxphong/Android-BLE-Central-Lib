@@ -6,6 +6,7 @@ Copy 'combluetoothle' into your project and make it as library dependency
 
 # Usage
 - Enable
+    ``` java
     try {
         FiotBluetoothInit.enable(this, this);
     } catch (NotSupportBleException e) {
@@ -18,7 +19,7 @@ Copy 'combluetoothle' into your project and make it as library dependency
     public void completed() 
     
     }
-             
+    ```
 - Scan:
     FioTScanManager scanManager = new FioTScanManager(this);
     
