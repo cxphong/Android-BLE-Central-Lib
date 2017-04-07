@@ -229,6 +229,10 @@ public class FioTBluetoothLE {
     }
 
     public void addWorkingService(ArrayList<FioTBluetoothService> services) {
+        if (services == null) {
+            return;
+        }
+
         mWorkingBluetoothService = new ArrayList<>(services);
     }
 
@@ -249,7 +253,7 @@ public class FioTBluetoothLE {
 
         ch.setValue(dataToWrite);
         mBluetoothGatt.writeCharacteristic(ch);
-
+        ByteUtils.printArray(dataToWrite);
         return 0;
     }
 
@@ -584,7 +588,7 @@ public class FioTBluetoothLE {
         public void onCharacteristicRead(BluetoothGatt gatt,
                                          BluetoothGattCharacteristic characteristic,
                                          int status) {
-            Log.i(TAG, "Read done");
+            Log.i(TAG, "onCharacteristicRead: read done");
 
             if (characteristic == compareCharacteristics) {
                 if (ByteUtils.compare2Array(characteristic.getValue(), compareBytes)) {
@@ -600,7 +604,6 @@ public class FioTBluetoothLE {
                     Log.i(TAG, "compare: " + Arrays.toString(compareBytes));
                 }
             }
-
 
             if (readListener != null) {
                 readListener.onRead(characteristic);

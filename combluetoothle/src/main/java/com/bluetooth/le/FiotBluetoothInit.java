@@ -26,11 +26,21 @@ public class FiotBluetoothInit {
     private static Context context;
     private static FiotBluetoothInitListener listener;
 
+    /**
+     * Callback when enable completed
+     */
     public interface FiotBluetoothInitListener {
         void completed();
     }
 
-    public static void init(Context c, FiotBluetoothInitListener l) throws NotSupportBleException, NotFromActivity {
+    /**
+     * Check bluetooth state, ble support and permission
+     * @param c
+     * @param l
+     * @throws NotSupportBleException
+     * @throws NotFromActivity
+     */
+    public static void enable(Context c, FiotBluetoothInitListener l) throws NotSupportBleException, NotFromActivity {
         if (!(c instanceof Activity)) {
             throw new NotFromActivity("Given Context must be an Activity");
         }

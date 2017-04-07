@@ -15,10 +15,11 @@ public class FioTScanManager {
     private ScanManagerListener listener;
     private FioTBluetoothLE ble;
     private volatile boolean ignoreExist;
-    private ArrayList<BLEDevice> deviceList = new ArrayList<>();
+    private ArrayList<BLEDevice> list = new ArrayList<>();
 
     public interface ScanManagerListener {
-        void onFoundDevice(BluetoothDevice device, int rssi);
+        void onFoundDevice(BluetoothDevice device,
+                           final int rssi);
     }
 
     public FioTScanManager(Context context) {
@@ -26,14 +27,12 @@ public class FioTScanManager {
         ble.setBluetoothLEScanListener(scanListener);
     }
 
-    public void start(ScanManagerListener listener) {
-        start("", false, listener);
-    }
-
-    public void start(boolean ignoreExist, ScanManagerListener listener) {
-        start("", ignoreExist, listener);
-    }
-
+    /**
+     * Start scan ble device
+     * @param filter
+     * @param ignoreExist
+     * @param listener
+     */
     public void start(String filter, boolean ignoreExist, ScanManagerListener listener) {
         this.filter = filter;
         this.ignoreExist = ignoreExist;
@@ -41,10 +40,12 @@ public class FioTScanManager {
         ble.startScanning();
     }
 
+    /**
+     * Stop scan ble device
+     */
     public void stop() {
-        Log.i(TAG, "stop: ");
         ble.stopScanning();
-        deviceList.clear();
+        list.clear();
     }
 
     public void end() {
@@ -61,7 +62,7 @@ public class FioTScanManager {
                 if (device.getName().contains(filter)) {
 
                     if (!exist(device)) {
-                        deviceList.add(new BLEDevice(rssi, device));
+                        list.add(new BLEDevice(rssi, device));
                     } else if (ignoreExist) {
                         return;
                     }
@@ -75,7 +76,7 @@ public class FioTScanManager {
     };
 
     private boolean exist(BluetoothDevice device) {
-        for (BLEDevice d : deviceList) {
+        for (BLEDevice d : list) {
             if (d.device.getAddress().equalsIgnoreCase(device.getAddress())) {
                 return true;
             }
@@ -95,3 +96,4 @@ public class FioTScanManager {
     }
 
 }
+
