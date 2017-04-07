@@ -21,9 +21,11 @@ Copy 'combluetoothle' into your project and make it as library dependency
     }
     ```
 - Scan:
+
+    ```java
     FioTScanManager scanManager = new FioTScanManager(this);
     
-    # Start
+    // Start
     scanManager.start("", true, new FioTScanManager.ScanManagerListener() {
             @Override
             public void onFoundDevice(BluetoothDevice device, int rssi) {
@@ -31,12 +33,13 @@ Copy 'combluetoothle' into your project and make it as library dependency
             }
     });
     
-    # Stop
+    // Stop
     scanManager.stop();
-
-- Connect, recieve notify, receive read, ble state
+    ```
     
-    # Define services & characteristics
+- Connect, recieve notify, receive read, ble state
+    ``` java
+    // Define services & characteristics
       ArrayList<FioTBluetoothService> services = new ArrayList<FioTBluetoothService>();
       ArrayList<FioTBluetoothCharacteristic> characteristics = new ArrayList<FioTBluetoothCharacteristic>();
       characteristics.add(new FioTBluetoothCharacteristic("00002a26-0000-1000-8000-00805f9b34fb", false));
@@ -46,7 +49,7 @@ Copy 'combluetoothle' into your project and make it as library dependency
         devicesList.get((int) view1.getTag()).device,
         services);
 
-    # Listener
+    // Listener
     manager.setFioTConnectManagerListener(new FioTManager.FioTConnectManagerListener() {
       @Override
       public void onConnectFail(int error) {
@@ -75,13 +78,17 @@ Copy 'combluetoothle' into your project and make it as library dependency
           ByteUtils.printArray(characteristic.getCharacteristic().getValue());
       }
     });
-
+    ```
 - Disconnect
+    ```java
     manager.end()
+    ```
     
 - read
+    ``` java
    manager.read("00002a26-0000-1000-8000-00805f9b34fb");
-
+    ```
 - write
+    ``` java
     manager.write("00002a26-0000-1000-8000-00805f9b34fb", new byte[]{1,2,3});
- 
+    ```
