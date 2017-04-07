@@ -58,7 +58,7 @@ public class FioTBluetoothLE {
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothDevice mBluetoothDevice;
     private BluetoothGatt mBluetoothGatt;
-    private List<String> mWorkingBluetoothService = new ArrayList<String>();
+    private List<FioTBluetoothService> mWorkingBluetoothService = new ArrayList<>();
     private Queue<BluetoothGattCharacteristic> mCharacQueue = new LinkedList<BluetoothGattCharacteristic>();
     private Queue<byte[]> mDataToWriteQueue = new LinkedList<byte[]>();
     private ArrayList<BluetoothGattCharacteristic> mListCharacteristic = new ArrayList<BluetoothGattCharacteristic>();
@@ -228,13 +228,8 @@ public class FioTBluetoothLE {
         gattClose();
     }
 
-    /**
-     * Add service UUID that we care.
-     *
-     * @param service
-     */
-    public void addWorkingService(String service) {
-        mWorkingBluetoothService.add(service);
+    public void addWorkingService(ArrayList<FioTBluetoothService> services) {
+        mWorkingBluetoothService = new ArrayList<>(services);
     }
 
     /**
@@ -477,8 +472,8 @@ public class FioTBluetoothLE {
             List<BluetoothGattService> services = mBluetoothGatt.getServices();
             for (BluetoothGattService service : services) {
                 Log.i(TAG, "service = " + service.getUuid());
-                for (String uuid : mWorkingBluetoothService) {
-                    if (service.getUuid().toString().equalsIgnoreCase(uuid)) {
+                for (FioTBluetoothService fioTBluetoothService : mWorkingBluetoothService) {
+                    if (service.getUuid().toString().equalsIgnoreCase(fioTBluetoothService.getUuid())) {
                         List<BluetoothGattCharacteristic> chars = service.getCharacteristics();
 
                         for (int i = 0; i < service.getCharacteristics().size(); i++) {

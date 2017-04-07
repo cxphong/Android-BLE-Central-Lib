@@ -18,6 +18,10 @@ public class FioTBluetoothService {
         this.characteristics = characteristics;
     }
 
+    public String getUuid() {
+        return uuid;
+    }
+
     public List<FioTBluetoothCharacteristic> getCharacteristics() {
         return characteristics;
     }

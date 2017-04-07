@@ -30,26 +30,6 @@ public class FiotBluetoothInit {
         void completed();
     }
 
-    private static void checkSupportBle() throws NotSupportBleException {
-        if (!isBleHardwareAvailable()) {
-            throw new NotSupportBleException(context.getResources().getString(R.string.exception_not_support_ble));
-        }
-    }
-
-    private static void checkBluetoothAndEnablePermission() {
-        if (!isBluetoothEnabled()) {
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            ((Activity) context).startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-        } else {
-            if (hasPermission()) {
-                listener.completed();
-            } else {
-                requestPermission();
-            }
-        }
-    }
-
-
     public static void init(Context c, FiotBluetoothInitListener l) throws NotSupportBleException, NotFromActivity {
         if (!(c instanceof Activity)) {
             throw new NotFromActivity("Given Context must be an Activity");
@@ -63,6 +43,12 @@ public class FiotBluetoothInit {
         checkBluetoothAndEnablePermission();
     }
 
+    private static void checkSupportBle() throws NotSupportBleException {
+        if (!isBleHardwareAvailable()) {
+            throw new NotSupportBleException(context.getResources().getString(R.string.exception_not_support_ble));
+        }
+    }
+
     /**
      * Check if phone supports BLE
      *
@@ -70,6 +56,19 @@ public class FiotBluetoothInit {
      */
     private static boolean isBleHardwareAvailable() {
         return context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE);
+    }
+
+    private static void checkBluetoothAndEnablePermission() {
+        if (!isBluetoothEnabled()) {
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            ((Activity) context).startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+        } else {
+            if (hasPermission()) {
+                listener.completed();
+            } else {
+                requestPermission();
+            }
+        }
     }
 
     /**

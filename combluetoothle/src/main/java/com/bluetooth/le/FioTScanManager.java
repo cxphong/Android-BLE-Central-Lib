@@ -15,14 +15,10 @@ public class FioTScanManager {
     private ScanManagerListener listener;
     private FioTBluetoothLE ble;
     private volatile boolean ignoreExist;
-    private ArrayList<BLEDevice> list = new ArrayList<>();
+    private ArrayList<BLEDevice> deviceList = new ArrayList<>();
 
     public interface ScanManagerListener {
-        void onFoundDevice(final String name,
-                           final String address,
-                           final int type,
-                           final int bondState,
-                           final int rssi);
+        void onFoundDevice(BluetoothDevice device, int rssi);
     }
 
     public FioTScanManager(Context context) {
@@ -30,19 +26,25 @@ public class FioTScanManager {
         ble.setBluetoothLEScanListener(scanListener);
     }
 
-    public void setFilter(String filter) {
-        this.filter = filter;
+    public void start(ScanManagerListener listener) {
+        start("", false, listener);
     }
 
     public void start(boolean ignoreExist, ScanManagerListener listener) {
+        start("", ignoreExist, listener);
+    }
+
+    public void start(String filter, boolean ignoreExist, ScanManagerListener listener) {
+        this.filter = filter;
         this.ignoreExist = ignoreExist;
         this.listener = listener;
         ble.startScanning();
     }
 
     public void stop() {
+        Log.i(TAG, "stop: ");
         ble.stopScanning();
-        list.clear();
+        deviceList.clear();
     }
 
     public void end() {
@@ -59,17 +61,13 @@ public class FioTScanManager {
                 if (device.getName().contains(filter)) {
 
                     if (!exist(device)) {
-                        list.add(new BLEDevice(rssi, device));
+                        deviceList.add(new BLEDevice(rssi, device));
                     } else if (ignoreExist) {
                         return;
                     }
 
                     if (listener != null) {
-                        listener.onFoundDevice(device.getName(),
-                                device.getAddress(),
-                                device.getType(),
-                                device.getBondState(),
-                                rssi);
+                        listener.onFoundDevice(device, rssi);
                     }
                 }
             }
@@ -77,7 +75,7 @@ public class FioTScanManager {
     };
 
     private boolean exist(BluetoothDevice device) {
-        for (BLEDevice d : list) {
+        for (BLEDevice d : deviceList) {
             if (d.device.getAddress().equalsIgnoreCase(device.getAddress())) {
                 return true;
             }
