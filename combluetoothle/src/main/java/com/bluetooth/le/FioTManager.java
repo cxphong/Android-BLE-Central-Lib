@@ -8,11 +8,8 @@ import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import static android.R.attr.name;
 import static com.bluetooth.le.FioTManager.Status.connected;
@@ -37,7 +34,7 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
     private FioTBluetoothLE ble;
     private FioTConnectManagerListener listener;
     private Context mContext;
-    private ScheduledFuture connectionSchedule;
+    private Timer connectionSchedule;
     private FioTScanManager scanManager;
     private Status status;
 
@@ -49,9 +46,9 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
 
         void onConnected();
 
-        void onDisconnected();
+        void onDisconnected(FioTManager manager);
 
-        void onNofify(FioTBluetoothCharacteristic characteristic);
+        void onNotify(FioTBluetoothCharacteristic characteristic);
 
         void onRead(FioTBluetoothCharacteristic characteristic);
     }
@@ -104,6 +101,7 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
 
     /**
      * Connect to ble device
+     *
      * @param timeoutMillisec
      */
     public void connect(int timeoutMillisec) {
@@ -119,18 +117,16 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
 
     private void startConnectTimeout(int timeoutMillisec) {
         if (timeoutMillisec > 0) {
-            ScheduledExecutorService s =
-                    Executors.newScheduledThreadPool(1);
-            connectionSchedule = s.schedule(new Callable() {
+            connectionSchedule = new Timer();
+            connectionSchedule.schedule(new TimerTask() {
                 @Override
-                public Object call() throws Exception {
+                public void run() {
                     Log.i(TAG, "call: check");
-                    if (status == connected) {
+                    if (status != connected) {
                         listener.onConnectFail(-1);
                     }
-                    return null;
                 }
-            }, timeoutMillisec, TimeUnit.MILLISECONDS);
+            }, timeoutMillisec);
         }
     }
 
@@ -173,7 +169,7 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
                 listener);
     }
 
-    public void write(String  characUuid,
+    public void write(String characUuid,
                       byte[] data,
                       int delayTimeMilliSec,
                       int blockSize) {
@@ -239,10 +235,7 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
             status = connected;
 
             if (connectionSchedule != null) {
-                if (!connectionSchedule.isCancelled() ||
-                        !connectionSchedule.isDone()) {
-                    connectionSchedule.cancel(false);
-                }
+                connectionSchedule.cancel();
             }
 
             if (listener != null) listener.onConnected();
@@ -252,22 +245,25 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
     @Override
     public void onDisconnected() {
         Log.i(TAG, "onDisconnected");
-        status = disconnected;
 
-        ble.disableWrite();
+        if (status == connecting) {
+            if (listener != null) listener.onConnectFail(0);
+        } else {
+            status = disconnected;
 
-        try {
-            connectionSchedule.cancel(true);
-        } catch (Exception e) {
+            ble.disableWrite();
 
+            if (connectionSchedule != null) {
+                connectionSchedule.cancel();
+            }
+
+            if (listener != null) listener.onDisconnected(this);
         }
-
-        if (listener != null) listener.onDisconnected();
     }
 
     @Override
     public void onReceiveData(BluetoothGatt gatt, BluetoothGattCharacteristic charac, final byte[] data) {
-        if (listener != null) listener.onNofify(getCharacteristic(charac));
+        if (listener != null) listener.onNotify(getCharacteristic(charac));
     }
 
     @Override
@@ -286,12 +282,9 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
         status = connected;
 
         ble.enableWrite();
-        Log.i(TAG, "onStartListenNotificationComplete: " + connectionSchedule);
+        Log.i(TAG, "onStartListenNotificationComplete: " + this);
         if (connectionSchedule != null) {
-            if (!connectionSchedule.isCancelled() ||
-                    !connectionSchedule.isDone()) {
-                connectionSchedule.cancel(false);
-            }
+            connectionSchedule.cancel();
         }
 
         if (listener != null) listener.onConnected();
@@ -327,5 +320,4 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
 
         return ch;
     }
-
 }

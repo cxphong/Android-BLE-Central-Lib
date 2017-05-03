@@ -3,6 +3,7 @@ package com.bluetooth.le.utils;
 import android.util.Log;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Arrays;
 
 /**
@@ -147,7 +148,15 @@ public class ByteUtils {
         return new String(b);
     }
 
-    public static void printArray(byte [] data) {
-        Log.i(TAG, "printArray: " + Arrays.toString(toHex(data)));
+    public static void printArray(String title, byte [] data) {
+        Log.i(TAG, title + ", " + Arrays.toString(toHex(data))  + ", " + new String(data));
+    }
+
+    public static float toFloat(byte[] b) {
+        return ByteBuffer.wrap(b).order(ByteOrder.BIG_ENDIAN).getFloat();
+    }
+
+    public static int toInteger(byte[] b) {
+        return ByteBuffer.wrap(b).order(ByteOrder.BIG_ENDIAN).getInt();
     }
 }

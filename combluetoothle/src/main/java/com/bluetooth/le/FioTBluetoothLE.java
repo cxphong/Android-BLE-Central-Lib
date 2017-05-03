@@ -253,7 +253,7 @@ public class FioTBluetoothLE {
 
         ch.setValue(dataToWrite);
         mBluetoothGatt.writeCharacteristic(ch);
-        ByteUtils.printArray(dataToWrite);
+        ByteUtils.printArray(ch.getUuid().toString(), dataToWrite);
         return 0;
     }
 
@@ -565,6 +565,14 @@ public class FioTBluetoothLE {
                 if (status != BluetoothGatt.GATT_SUCCESS && !mIsConnected) {
                     mBluetoothLEListener.onConnectResult(CONNECT_FAIL, status);
                 } else {
+                    synchronized (read) {
+                        read.notifyAll();
+                    }
+
+                    synchronized (write) {
+                        write.notifyAll();
+                    }
+
                     mIsConnected = false;
                     mBluetoothLEListener.onDisconnected();
                 }
