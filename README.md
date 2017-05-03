@@ -17,7 +17,7 @@ Copy 'combluetoothle' into your project and make it as library dependency
     
     @Override
     public void completed() 
-    
+        // Can start scan
     }
     ```
 - Scan:
