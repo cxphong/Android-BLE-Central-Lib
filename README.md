@@ -7,6 +7,7 @@ Copy 'combluetoothle' into your project and make it as library dependency
 # Usage
 - Enable
     ``` java
+    // Check harware support ble, turn bluetooth if it is disable, request permission
     try {
         FiotBluetoothInit.enable(this, this);
     } catch (NotSupportBleException e) {
