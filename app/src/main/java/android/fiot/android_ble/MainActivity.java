@@ -167,9 +167,15 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
                         Log.i(TAG, "onClick: " + (int) view1.getTag());
 
                         ArrayList<FioTBluetoothService> services = new ArrayList<FioTBluetoothService>();
-                        ArrayList<FioTBluetoothCharacteristic> characteristics = new ArrayList<FioTBluetoothCharacteristic>();
-                        characteristics.add(new FioTBluetoothCharacteristic("00002a26-0000-1000-8000-00805f9b34fb", false));
-                        services.add(new FioTBluetoothService("0000180a-0000-1000-8000-00805f9b34fb", characteristics));
+                        ArrayList<FioTBluetoothCharacteristic> characteristics1 = new ArrayList<FioTBluetoothCharacteristic>();
+                        characteristics1.add(new FioTBluetoothCharacteristic("00002a29-0000-1000-8000-00805f9b34fb", false));
+                        services.add(new FioTBluetoothService("0000180a-0000-1000-8000-00805f9b34fb", characteristics1));
+
+                        // APNS apple bluetooth
+                        ArrayList<FioTBluetoothCharacteristic> characteristics2 = new ArrayList<FioTBluetoothCharacteristic>();
+                        characteristics2.add(new FioTBluetoothCharacteristic("9fbf120d-6301-42d9-8c58-25e699a21dbd", true));
+                        characteristics2.add(new FioTBluetoothCharacteristic("22eac6e9-24d6-4bb5-be44-b36ace7c7bfb", true));
+                        services.add(new FioTBluetoothService("7905f431-b5ce-4e99-a40f-4b1e122d00d0", characteristics2));
 
                         manager = new FioTManager(MainActivity.this,
                                 devicesList.get((int) view1.getTag()).device,
@@ -177,6 +183,7 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
                         manager.connect(10000);
 
                         manager.setFioTConnectManagerListener(new FioTManager.FioTConnectManagerListener() {
+
                             @Override
                             public void onConnectFail(int error) {
 
@@ -184,24 +191,26 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
 
                             @Override
                             public void onConnected() {
-                                manager.read("00002a26-0000-1000-8000-00805f9b34fb");
+                                Log.i(TAG, "onConnected: ");
+                                manager.read("00002a29-0000-1000-8000-00805f9b34fb");
                             }
 
                             @Override
-                            public void onDisconnected() {
-                                Log.i(TAG, "onDisconnected: ");
+                            public void onDisconnected(FioTManager manager) {
+
                             }
 
                             @Override
-                            public void onNofify(FioTBluetoothCharacteristic characteristic) {
-                                Log.i(TAG, "onNofify: ");
-                                ByteUtils.printArray(characteristic.getCharacteristic().getValue());
+                            public void onNotify(FioTBluetoothCharacteristic characteristic) {
+                                Log.i(TAG, "onNotify: " + characteristic.getUuid());
+                                Log.i(TAG, "onNofify: " + ByteUtils.toHexString(characteristic.getCharacteristic().getValue()));
                             }
 
                             @Override
                             public void onRead(FioTBluetoothCharacteristic characteristic) {
                                 Log.i(TAG, "onRead: ");
-                                ByteUtils.printArray(characteristic.getCharacteristic().getValue());
+                                Log.i(TAG, "onRead: " + ByteUtils.toHexString(characteristic.getCharacteristic().getValue()));
+                                Log.i(TAG, "onRead: " + ByteUtils.toString(characteristic.getCharacteristic().getValue()));
                             }
                         });
 

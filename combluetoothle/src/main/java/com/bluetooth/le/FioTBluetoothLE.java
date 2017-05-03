@@ -253,7 +253,7 @@ public class FioTBluetoothLE {
 
         ch.setValue(dataToWrite);
         mBluetoothGatt.writeCharacteristic(ch);
-        ByteUtils.printArray(ch.getUuid().toString(), dataToWrite);
+        ByteUtils.toHexString(dataToWrite);
         return 0;
     }
 
@@ -283,7 +283,7 @@ public class FioTBluetoothLE {
             numBytesSent += bytes.length;
             compareBytes = bytes;
 
-            Log.i(TAG, "writeWithResponse: " + Arrays.toString(ByteUtils.toHex(bytes)));
+            Log.i(TAG, "writeDataToCharacteristic: " + ByteUtils.toHexString(dataToWrite));
             Log.i(TAG, "remain " + (dataToWrite.length - numBytesSent));
 
             if (listener != null) {
@@ -608,7 +608,7 @@ public class FioTBluetoothLE {
                     }
                 } else {
                     Log.i(TAG, "onCharacteristicRead: different data");
-                    Log.i(TAG, "read: " + Arrays.toString(ByteUtils.toHex(characteristic.getValue())));
+                    Log.i(TAG, "read: " + ByteUtils.toHexString(characteristic.getValue()));
                     Log.i(TAG, "compare: " + Arrays.toString(compareBytes));
                 }
             }
