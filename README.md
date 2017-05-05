@@ -40,15 +40,17 @@ Copy 'combluetoothle' into your project and make it as library dependency
     
 - Connect, recieve notify, receive read, ble state
     ``` java
-    // Define service & characteristic
+    /**
+     * Define service & characteristic
+     */
     ArrayList<FioTBluetoothService> services = new ArrayList<FioTBluetoothService>();
     ArrayList<FioTBluetoothCharacteristic> characteristics1 = new ArrayList<FioTBluetoothCharacteristic>();
-    characteristics1.add(new FioTBluetoothCharacteristic("00002a29-0000-1000-8000-00805f9b34fb", false));
+    characteristics1.add(new FioTBluetoothCharacteristic("00002a29-0000-1000-8000-00805f9b34fb", false)); // Not notify
     services.add(new FioTBluetoothService("0000180a-0000-1000-8000-00805f9b34fb", characteristics1));
 
     ArrayList<FioTBluetoothCharacteristic> characteristics2 = new ArrayList<FioTBluetoothCharacteristic>();
-    characteristics2.add(new FioTBluetoothCharacteristic("9fbf120d-6301-42d9-8c58-25e699a21dbd", true));
-    characteristics2.add(new FioTBluetoothCharacteristic("22eac6e9-24d6-4bb5-be44-b36ace7c7bfb", true));
+    characteristics2.add(new FioTBluetoothCharacteristic("9fbf120d-6301-42d9-8c58-25e699a21dbd", true)); // Listen notify
+    characteristics2.add(new FioTBluetoothCharacteristic("22eac6e9-24d6-4bb5-be44-b36ace7c7bfb", true)); // Listen notify
     services.add(new FioTBluetoothService("7905f431-b5ce-4e99-a40f-4b1e122d00d0", characteristics2));
 
     manager = new FioTManager(MainActivity.this,
