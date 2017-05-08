@@ -36,6 +36,10 @@ Copy 'combluetoothle' into your project and make it as library dependency
     
     // Stop
     scanManager.stop();
+    
+    // End scan
+    scanManager.end();
+    
     ```
     
 - Connect, recieve notify, receive read, ble state
