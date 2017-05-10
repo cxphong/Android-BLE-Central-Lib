@@ -497,12 +497,13 @@ public class FioTBluetoothLE {
             for (BluetoothGattService service : services) {
                 Log.i(TAG, "service = " + service.getUuid());
                 for (FioTBluetoothService fioTBluetoothService : mWorkingBluetoothService) {
-                    if (service.getUuid().toString().equalsIgnoreCase(fioTBluetoothService.getUuid())) {
+                    if (service.getUuid().toString().equalsIgnoreCase(fioTBluetoothService.getUuid().toString())) {
                         List<BluetoothGattCharacteristic> chars = service.getCharacteristics();
-
+                        
                         for (int i = 0; i < service.getCharacteristics().size(); i++) {
                             Log.i(TAG, "ch = " + chars.get(i).getUuid());
                         }
+                        
                         mListCharacteristic.addAll(chars);
                     }
                 }
