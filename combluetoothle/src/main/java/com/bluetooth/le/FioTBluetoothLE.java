@@ -23,6 +23,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Timer;
+import java.util.TimerTask;
 import java.util.UUID;
 
 /**
@@ -268,6 +269,18 @@ public class FioTBluetoothLE {
         writeDataToCharacteristic(ch, dataToWrite, delayTime, blockSize, null);
     }
 
+    /**
+     * Step 1: Write chunk
+     * Step 2: Wait until response write success
+     * Step 3: Read back data
+     * Step 4: If data equal written data, next
+     *
+     * @param ch
+     * @param dataToWrite
+     * @param delayTime
+     * @param blockSize
+     * @param listener
+     */
     public void writeDataToCharacteristic(final BluetoothGattCharacteristic ch,
                                           final byte[] dataToWrite,
                                           final int delayTime,
@@ -352,6 +365,14 @@ public class FioTBluetoothLE {
         }
     }
 
+    /**
+     * Same above but less delay time
+     *
+     * @param ch
+     * @param dataToWrite
+     * @param delayTime
+     * @param blockSize
+     */
     public void writeDataToCharacteristic2(final BluetoothGattCharacteristic ch,
                                            final byte[] dataToWrite,
                                            final int delayTime,
@@ -366,7 +387,6 @@ public class FioTBluetoothLE {
             numBytesSent += bytes.length;
             compareBytes = bytes;
 
-            // After 1s
             writeTimer = new Timer();
             writeTimer.schedule(
                     new java.util.TimerTask() {
@@ -649,7 +669,13 @@ public class FioTBluetoothLE {
 
             mCharacQueue.remove();
             if (mCharacQueue.size() > 0) {
-                setNotificationForCharacteristic(mCharacQueue.element(), true);
+                Timer timer = new Timer();
+                timer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        setNotificationForCharacteristic(mCharacQueue.element(), true);
+                    }
+                }, 1000);
             } else {
                 if (mBluetoothLEListener != null) {
                     mBluetoothLEListener.onStartListenNotificationComplete();

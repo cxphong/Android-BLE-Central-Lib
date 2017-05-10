@@ -157,7 +157,7 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
         return ble.writeDataToCharacteristic(getCharacteristic(characUuid).getCharacteristic(), data);
     }
 
-    public void write(String characUuid,
+    public synchronized void write(String characUuid,
                       byte[] data,
                       int delayTimeMilliSec,
                       int blockSize,
@@ -169,7 +169,7 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
                 listener);
     }
 
-    public void write(String characUuid,
+    public synchronized void write(String characUuid,
                       byte[] data,
                       int delayTimeMilliSec,
                       int blockSize) {
@@ -179,10 +179,10 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
                 blockSize);
     }
 
-    public void write2(String characUuid,
-                       byte[] data,
-                       int delayTimeMilliSec,
-                       int blockSize) {
+    public synchronized void write2(String characUuid,
+                                     byte[] data,
+                                     int delayTimeMilliSec,
+                                     int blockSize) {
         ble.writeDataToCharacteristic2(getCharacteristic(characUuid).getCharacteristic(),
                 data,
                 delayTimeMilliSec,
