@@ -207,6 +207,7 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
     @Override
     public void onConnectResult(int result, int error) {
         if (result == FioTBluetoothLE.CONNECT_SUCCESS) {
+            /* Wait until search services complete */
             Log.i(TAG, "onConnectResult: success");
         } else if (result == FioTBluetoothLE.CONNECT_FAIL) {
             Log.i(TAG, "onConnectResult: fail");
@@ -218,20 +219,21 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
     public void onGetSupportServiceComplete() {
         Log.i(TAG, "onGetSupportServiceComplete");
 
-        boolean hasNotify = false;
+        boolean hasCharacteristicsNeedEnableNotify = false;
 
         for (FioTBluetoothService service : services) {
             for (FioTBluetoothCharacteristic c : service.getCharacteristics()) {
                 c.setCharacteristic(ble.getCharacteristic(c.getUuid()));
                 if (c.isNotify()) {
                     Log.i(TAG, "onGetSupportServiceComplete: " + c.getUuid());
-                    hasNotify = true;
+                    hasCharacteristicsNeedEnableNotify = true;
                     ble.startListenNotification(c.getCharacteristic());
                 }
             }
         }
 
-        if (!hasNotify) {
+        /* No characteristic need enable notify */
+        if (!hasCharacteristicsNeedEnableNotify) {
             status = connected;
 
             if (connectionSchedule != null) {

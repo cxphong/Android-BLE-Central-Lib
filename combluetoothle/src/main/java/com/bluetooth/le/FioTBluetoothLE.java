@@ -60,7 +60,7 @@ public class FioTBluetoothLE {
     private BluetoothDevice mBluetoothDevice;
     private BluetoothGatt mBluetoothGatt;
     private List<FioTBluetoothService> mWorkingBluetoothService = new ArrayList<>();
-    private Queue<BluetoothGattCharacteristic> mCharacQueue = new LinkedList<BluetoothGattCharacteristic>();
+    private Queue<BluetoothGattCharacteristic> mEnableNotifyQueue = new LinkedList<>();
     private Queue<byte[]> mDataToWriteQueue = new LinkedList<byte[]>();
     private ArrayList<BluetoothGattCharacteristic> mListCharacteristic = new ArrayList<BluetoothGattCharacteristic>();
 
@@ -512,9 +512,9 @@ public class FioTBluetoothLE {
     }
 
     public void startListenNotification(BluetoothGattCharacteristic ch) {
-        mCharacQueue.add(ch);
-        if (mCharacQueue.size() == 1) {
-            setNotificationForCharacteristic(mCharacQueue.element(), true);
+        mEnableNotifyQueue.add(ch);
+        if (mEnableNotifyQueue.size() == 1) {
+            setNotificationForCharacteristic(mEnableNotifyQueue.element(), true);
         }
     }
 
@@ -544,9 +544,9 @@ public class FioTBluetoothLE {
             descriptor.setValue(val);
             mBluetoothGatt.writeDescriptor(descriptor);
         } else {
-            mCharacQueue.remove();
-            if (mCharacQueue.size() > 0) {
-                setNotificationForCharacteristic(mCharacQueue.element(), true);
+            mEnableNotifyQueue.remove();
+            if (mEnableNotifyQueue.size() > 0) {
+                setNotificationForCharacteristic(mEnableNotifyQueue.element(), true);
             } else {
                 mBluetoothLEListener.onConnectResult(CONNECT_SUCCESS, 0);
             }
@@ -577,7 +577,14 @@ public class FioTBluetoothLE {
 
                 mBluetoothLEListener.onConnectResult(CONNECT_SUCCESS, 0);
 
-                startServicesDiscovery();
+                /* Delay to reduce error 133 */
+                Timer timer = new Timer();
+                timer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        startServicesDiscovery();
+                    }
+                }, 2000);
             } else if (newState == BluetoothGatt.STATE_DISCONNECTED) {
                 Log.i(TAG, "onConnectionStateChange: disconnect, " +
                         "status " + status +
@@ -668,13 +675,13 @@ public class FioTBluetoothLE {
         public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
             Log.i(TAG, "onDescriptorWrite status = " + status);
 
-            mCharacQueue.remove();
-            if (mCharacQueue.size() > 0) {
+            mEnableNotifyQueue.remove();
+            if (mEnableNotifyQueue.size() > 0) {
                 Timer timer = new Timer();
                 timer.schedule(new TimerTask() {
                     @Override
                     public void run() {
-                        setNotificationForCharacteristic(mCharacQueue.element(), true);
+                        setNotificationForCharacteristic(mEnableNotifyQueue.element(), true);
                     }
                 }, 1000);
             } else {
