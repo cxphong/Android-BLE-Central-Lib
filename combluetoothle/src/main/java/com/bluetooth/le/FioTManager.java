@@ -174,7 +174,6 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
 
         FioTBluetoothCharacteristic ch = getCharacteristic(characUUID);
         if (ch == null) return false;
-        ch.getCharacteristic().setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
 
         Queue<byte[]> queue = ch.getmDataToWriteQueue();
         boolean isQueueEmpty = (queue.size() == 0);
