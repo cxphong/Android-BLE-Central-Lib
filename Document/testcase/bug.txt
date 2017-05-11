@@ -1,0 +1,28 @@
+1. Connect, Disconnected
+	- Connect timeout
+	- Connect success but discover service time out
+	- Enable notification fail
+	- Enable notification time out
+	- Disconnected:
+		+ Discovering service
+		+ Enable notification
+		+ After setup done
+
+3. Read
+
+4. Write
+	- Write not response
+	- Write with response
+	- Write large data
+	- Disconnected when writing large data
+
+5. Notify
+
+6. Scan
+	- Scan fail
+	- Scan success
+	- Bluetooth disable
+	- Stop scan
+	- End scan
+
+7. Turn off bluetooth & turn on bluetooth

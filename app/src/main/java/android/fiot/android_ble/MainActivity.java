@@ -180,7 +180,7 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
                         manager = new FioTManager(MainActivity.this,
                                 devicesList.get((int) view1.getTag()).device,
                                 services);
-                        manager.connect(10000);
+                        manager.connect();
 
                         manager.setFioTConnectManagerListener(new FioTManager.FioTConnectManagerListener() {
 
