@@ -213,7 +213,18 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
                             @Override
                             public void onConnected() {
                                 Log.i(TAG, "onConnected: ");
-                                manager.write(REQUEST_CHARAC, SETMODE_CALIBSENS.getBytes());
+                                byte[] b = new byte[100];
+                                for (int i = 0; i < 100; i++) {
+                                    b[i] = (byte) i;
+                                }
+
+                                manager.write(REQUEST_CHARAC, b);
+
+                                byte[] c = new byte[100];
+                                for (int i = 100; i < 200; i++) {
+                                    c[i-100] = (byte) i;
+                                }
+                                manager.write(REQUEST_CHARAC, c);
                             }
 
                             @Override
@@ -223,8 +234,8 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
 
                             @Override
                             public void onNotify(FioTBluetoothCharacteristic characteristic) {
-                                Log.i(TAG, "onNotify: " + characteristic.getUuid());
-                                Log.i(TAG, "onNofify: " + ByteUtils.toHexString(characteristic.getCharacteristic().getValue()));
+//                                Log.i(TAG, "onNotify: " + characteristic.getUuid());
+//                                Log.i(TAG, "onNofify: " + ByteUtils.toHexString(characteristic.getCharacteristic().getValue()));
                             }
 
                             @Override

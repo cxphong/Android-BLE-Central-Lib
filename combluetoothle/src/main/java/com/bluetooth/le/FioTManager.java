@@ -6,8 +6,11 @@ import android.bluetooth.BluetoothGattCharacteristic;
 import android.content.Context;
 import android.util.Log;
 
+import com.bluetooth.le.utils.ByteUtils;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -24,6 +27,8 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
     private static final String TAG = "FioTManager";
 
     private static final int CONNECT_TIMEOUT_MILLISECOND = 30000;
+
+    private static final int DATA_CHUNK = 20; // 20 bytes
 
     public enum Status {
         disconnected,
@@ -110,7 +115,7 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
      * Connect to ble device
      */
     public void connect() {
-        if (status == disconnected) {
+        if (status == disconnected ) {
             status = connecting;
             ble.connect(device.getAddress());
             startConnectTimeout(CONNECT_TIMEOUT_MILLISECOND);
@@ -164,9 +169,50 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
         });
     }
 
-    public int write(String characUuid, byte[] data) {
-        return ble.writeDataToCharacteristic(getCharacteristic(characUuid).getCharacteristic(), data);
+    public boolean write(String characUUID, byte[] data) {
+        if (data == null || characUUID == null) return true;
+
+        FioTBluetoothCharacteristic ch = getCharacteristic(characUUID);
+        if (ch == null) return false;
+        ch.getCharacteristic().setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
+
+        Queue<byte[]> queue = ch.getmDataToWriteQueue();
+        boolean isQueueEmpty = (queue.size() == 0);
+
+        /* Split data into multiple packet with size equal DATA_CHUNK */
+        int index = 0;
+        while (index < data.length) {
+            byte[] bytes = ByteUtils.subByteArray(data, index, DATA_CHUNK);
+            index += bytes.length;
+            queue.add(bytes);
+        }
+
+        Log.i(TAG, "size: " + queue.size());
+
+        /* If first data */
+        if (isQueueEmpty){
+            ble.writeDataToCharacteristic(getCharacteristic(characUUID).getCharacteristic(),
+                    ch.getmDataToWriteQueue().element());
+        }
+
+        return true;
     }
+
+//    public int write(String characUuid, byte[] data) {
+//        FioTBluetoothCharacteristic characteristic = getCharacteristic(characUuid);
+//        Queue<byte[]> queue = characteristic.getmDataToWriteQueue();
+//
+//        queue.add(data);
+//
+//        if (queue)
+//        return ble.writeDataToCharacteristic(getCharacteristic(characUuid).getCharacteristic(),
+//                characteristic.getmDataToWriteQueue().remove());
+//    }
+//
+//    public int write(FioTBluetoothCharacteristic characteristic, byte[] data) {
+//        characteristic.getmDataToWriteQueue().add(data);
+//        return ble.writeDataToCharacteristic(getCharacteristic(characteristic.getUuid()).getCharacteristic(), data);
+//    }
 
     public synchronized void write(String characUuid,
                       byte[] data,
@@ -278,7 +324,12 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
 
     @Override
     public void onDidWrite(BluetoothGattCharacteristic cha, int status) {
-
+        FioTBluetoothCharacteristic characteristic = getCharacteristic(cha);
+        Queue queue = characteristic.getmDataToWriteQueue();
+        queue.remove();
+        if (characteristic.getmDataToWriteQueue().size() > 0) {
+            ble.writeDataToCharacteristic(cha, (byte[]) queue.element());
+        }
     }
 
     @Override

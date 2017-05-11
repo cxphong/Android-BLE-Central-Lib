@@ -1,4 +1,5 @@
 1. Connect, Disconnected
+	- connect multiple in connecting or connected
 	- Connect timeout
 	- Connect success but discover service time out
 	- Enable notification fail
@@ -17,6 +18,10 @@
 	- Write with response
 	- Write large data
 	- Disconnected when writing large data
+	- Write < 20 byte
+	- write > 20 byte
+	- write sequence
+	- write paralell
 
 5. Notify
 	- Device Disconnected

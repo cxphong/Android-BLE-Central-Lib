@@ -15,6 +15,8 @@ import android.util.Log;
 
 import com.bluetooth.le.utils.ByteUtils;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -173,6 +175,20 @@ public class FioTBluetoothLE {
         mScanning = false;
     }
 
+    private void refresh() {
+        try {
+            Method method = mBluetoothGatt.getClass().getDeclaredMethod("refresh");
+            method.setAccessible(true);
+            Object r = method.invoke(mBluetoothGatt);
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * Connect to remote device. Check @onConnectionStateChange() to get result
      *
@@ -194,6 +210,8 @@ public class FioTBluetoothLE {
         } else {
             mBluetoothGatt = mBluetoothDevice.connectGatt(mContext, false, mBleCallback);
         }
+
+        refresh();
     }
 
     /**
@@ -250,6 +268,7 @@ public class FioTBluetoothLE {
             return 1;
         }
 
+        Log.i(TAG, "writeDataToCharacteristic: " + ByteUtils.toHexString(dataToWrite));
         ch.setValue(dataToWrite);
         mBluetoothGatt.writeCharacteristic(ch);
         ByteUtils.toHexString(dataToWrite);
