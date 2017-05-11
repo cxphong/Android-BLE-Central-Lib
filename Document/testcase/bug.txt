@@ -7,6 +7,8 @@
 		+ Discovering service
 		+ Enable notification
 		+ After setup done
+	- Connect fail
+	- Service and characteristic incorrect info
 
 3. Read
 
@@ -17,6 +19,8 @@
 	- Disconnected when writing large data
 
 5. Notify
+	- Device Disconnected
+	- Phone disconnected
 
 6. Scan
 	- Scan fail

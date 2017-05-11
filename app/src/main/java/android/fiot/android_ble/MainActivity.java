@@ -36,6 +36,26 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
     private FioTScanManager scanManager;
     private FioTManager manager;
 
+    public static final String MOTIONBAND_SERVICE = "FF007AA9-18E9-11E7-93AE-92361F002671";
+    public static final String REQUEST_CHARAC = "FF017AA9-18E9-11E7-93AE-92361F002671";
+    public static final String RESPONE_CHARAC = "FF027AA9-18E9-11E7-93AE-92361F002671";
+    public static final String INDICATION_CHARAC = "FF037AA9-18E9-11E7-93AE-92361F002671";
+    public static final String DATA_1_CHARAC = "FF047AA9-18E9-11E7-93AE-92361F002671";
+    public static final String DATA_2_CHARAC = "FF057AA9-18E9-11E7-93AE-92361F002671";
+    public static final String DATA_3_CHARAC = "FF067AA9-18E9-11E7-93AE-92361F002671";
+    public static final String DATA_4_CHARAC = "FF077AA9-18E9-11E7-93AE-92361F002671";
+    public static final String ACK_CHARAC = "FF087AA9-18E9-11E7-93AE-92361F002671";
+
+    public static final String SETMODE_HWSELFTEST = "SetMode HWSelfTest";
+    public static final String SETMODE_IDLE       = "SetMode Idle";
+    public static final String SETMODE_COUNTER     = "SetMode Counter";
+    public static final String SETMODE_ACQUIRESENS = "SetMode AcquireSens";
+    public static final String SETMODE_CALIBSENS   = "SetMode CalibSens";
+    public static final String SETMODE_DOWNLOADFW   = "SetMode DownloadFW";
+
+    public static final String GETMODE             = "GetMode";
+    public static final String GETCOUNT            = "GetCount";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -167,15 +187,16 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
                         Log.i(TAG, "onClick: " + (int) view1.getTag());
 
                         ArrayList<FioTBluetoothService> services = new ArrayList<FioTBluetoothService>();
-                        ArrayList<FioTBluetoothCharacteristic> characteristics1 = new ArrayList<FioTBluetoothCharacteristic>();
-                        characteristics1.add(new FioTBluetoothCharacteristic("00002a29-0000-1000-8000-00805f9b34fb", false));
-                        services.add(new FioTBluetoothService("0000180a-0000-1000-8000-00805f9b34fb", characteristics1));
-
-                        // APNS apple bluetooth
                         ArrayList<FioTBluetoothCharacteristic> characteristics2 = new ArrayList<FioTBluetoothCharacteristic>();
-                        characteristics2.add(new FioTBluetoothCharacteristic("9fbf120d-6301-42d9-8c58-25e699a21dbd", true));
-                        characteristics2.add(new FioTBluetoothCharacteristic("22eac6e9-24d6-4bb5-be44-b36ace7c7bfb", true));
-                        services.add(new FioTBluetoothService("7905f431-b5ce-4e99-a40f-4b1e122d00d0", characteristics2));
+                        characteristics2.add(new FioTBluetoothCharacteristic(REQUEST_CHARAC, false));
+                        characteristics2.add(new FioTBluetoothCharacteristic(RESPONE_CHARAC, true));
+                        characteristics2.add(new FioTBluetoothCharacteristic(INDICATION_CHARAC, true));
+                        characteristics2.add(new FioTBluetoothCharacteristic(DATA_1_CHARAC, true));
+                        characteristics2.add(new FioTBluetoothCharacteristic(DATA_2_CHARAC, true));
+                        characteristics2.add(new FioTBluetoothCharacteristic(DATA_3_CHARAC, true));
+                        characteristics2.add(new FioTBluetoothCharacteristic(DATA_4_CHARAC, true));
+                        characteristics2.add(new FioTBluetoothCharacteristic(ACK_CHARAC, false));
+                        services.add(new FioTBluetoothService(MOTIONBAND_SERVICE, characteristics2));
 
                         manager = new FioTManager(MainActivity.this,
                                 devicesList.get((int) view1.getTag()).device,
@@ -186,13 +207,13 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
 
                             @Override
                             public void onConnectFail(int error) {
-
+                                Log.i(TAG, "onConnectFail: ");
                             }
 
                             @Override
                             public void onConnected() {
                                 Log.i(TAG, "onConnected: ");
-                                manager.read("00002a29-0000-1000-8000-00805f9b34fb");
+                                manager.write(REQUEST_CHARAC, SETMODE_CALIBSENS.getBytes());
                             }
 
                             @Override

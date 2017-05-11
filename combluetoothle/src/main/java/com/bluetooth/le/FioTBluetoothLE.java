@@ -470,22 +470,47 @@ public class FioTBluetoothLE {
         mBluetoothGatt.readRemoteRssi();
     }
 
+    private void printConfigService() {
+        Log.d(TAG, "================List configure services:================");
+
+        for (FioTBluetoothService fioTBluetoothService : mWorkingBluetoothService) {
+            Log.i(TAG, "Service UUID = " + fioTBluetoothService.getUuid());
+            for (FioTBluetoothCharacteristic fioTBluetoothCharacteristic : fioTBluetoothService.getCharacteristics()) {
+                Log.i(TAG, "Characteristic UUID = " + fioTBluetoothCharacteristic.getUuid());
+            }
+        }
+        Log.d(TAG, "================List configure services:================");
+    }
+
+    private void printFoundService() {
+        Log.d(TAG, "================List found services:================");
+
+        if (mBluetoothGatt != null) {
+            List<BluetoothGattService> services = mBluetoothGatt.getServices();
+            for (BluetoothGattService service : services) {
+                Log.i(TAG, "Service UUID = " + service.getUuid());
+                for (BluetoothGattCharacteristic bluetoothGattCharacteristic : service.getCharacteristics()) {
+                    Log.i(TAG, "Characteristic UUID = " + bluetoothGattCharacteristic.getUuid());
+                }
+            }
+        }
+        Log.d(TAG, "================List found services:================");
+    }
+
     /**
      * Get working services, enable characteristic notification
      */
     public void getSupportedServices() {
+        printConfigService();
+        printFoundService();
+
         if (mBluetoothGatt != null) {
             List<BluetoothGattService> services = mBluetoothGatt.getServices();
+
             for (BluetoothGattService service : services) {
-                Log.i(TAG, "service = " + service.getUuid());
                 for (FioTBluetoothService fioTBluetoothService : mWorkingBluetoothService) {
                     if (service.getUuid().toString().equalsIgnoreCase(fioTBluetoothService.getUuid().toString())) {
                         List<BluetoothGattCharacteristic> chars = service.getCharacteristics();
-
-                        for (int i = 0; i < service.getCharacteristics().size(); i++) {
-                            Log.i(TAG, "ch = " + chars.get(i).getUuid());
-                        }
-
                         mListCharacteristic.addAll(chars);
                     }
                 }
@@ -659,6 +684,15 @@ public class FioTBluetoothLE {
         public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
             Log.i(TAG, "onDescriptorWrite status = " + status);
 
+            if (status != BluetoothGatt.GATT_SUCCESS) {
+                if (mBluetoothLEListener != null) {
+                    mBluetoothLEListener.onConnectResult(CONNECT_FAIL, status);
+                }
+
+                mEnableNotifyQueue.clear();
+                return;
+            }
+
             mEnableNotifyQueue.remove();
             if (mEnableNotifyQueue.size() > 0) {
                 Timer timer = new Timer();
@@ -667,7 +701,7 @@ public class FioTBluetoothLE {
                     public void run() {
                         setNotificationForCharacteristic(mEnableNotifyQueue.element(), true);
                     }
-                }, 1000);
+                }, 500);
             } else {
                 if (mBluetoothLEListener != null) {
                     mBluetoothLEListener.onStartListenNotificationComplete();
@@ -724,6 +758,7 @@ public class FioTBluetoothLE {
         void onReadRemoteRSSI(int rssi, int status);
 
         void onStartListenNotificationComplete();
+
     }
 
     /**
