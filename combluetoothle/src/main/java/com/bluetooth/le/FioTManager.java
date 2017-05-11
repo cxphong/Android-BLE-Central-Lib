@@ -91,6 +91,7 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
     public void end() {
         Log.i(TAG, "Connect manager end");
         status = disconnected;
+        listener = null;
         ble.disableWrite();
         ble.stopScanning();
         ble.closeConnection();
@@ -212,6 +213,7 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
         } else if (result == FioTBluetoothLE.CONNECT_FAIL) {
             Log.i(TAG, "onConnectResult: fail");
             if (listener != null) listener.onConnectFail(error);
+            end();
         }
     }
 
@@ -261,6 +263,8 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
 
             if (listener != null) listener.onDisconnected(this);
         }
+
+        end();
     }
 
     @Override
