@@ -9,6 +9,7 @@ public class FioTBluetoothCharacteristic {
     private String uuid;
     private BluetoothGattCharacteristic characteristic;
     private boolean notify;
+    private int writeType;
 
     public FioTBluetoothCharacteristic(String uuid, boolean notify) {
         this.uuid = uuid;
@@ -38,4 +39,20 @@ public class FioTBluetoothCharacteristic {
     public void setNotify(boolean notify) {
         this.notify = notify;
     }
+
+    /**
+     * Set write type, must call after ble is in connected state
+     *
+     * @param type
+     * BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
+     * BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
+     * BluetoothGattCharacteristic.WRITE_TYPE_SIGNED
+     */
+    public boolean setWriteType(int type) {
+        if (characteristic == null) return false;
+
+        characteristic.setWriteType(type);
+        return true;
+    }
+
 }

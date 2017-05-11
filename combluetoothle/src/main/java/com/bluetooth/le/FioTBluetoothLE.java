@@ -1,6 +1,5 @@
 package com.bluetooth.le;
 
-import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
@@ -11,7 +10,6 @@ import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Build;
 import android.util.Log;
 
@@ -119,12 +117,6 @@ public class FioTBluetoothLE {
     public void end() {
         Log.i(TAG, "end");
 
-        StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
-        for (StackTraceElement stackTraceElement : stackTraceElements) {
-            Log.i(TAG, "end: " + stackTraceElement.getMethodName() + ", " +
-                    stackTraceElement.getClassName());
-        }
-
         try {
             mBluetoothAdapter = null;
             mBluetoothManager = null;
@@ -134,6 +126,7 @@ public class FioTBluetoothLE {
             mBluetoothDevice = null;
             mBleCallback = null;
             mBluetoothGatt = null;
+            mBluetoothLEListener = null;
             writeTimer.cancel();
             readTimer.cancel();
         } catch (Exception e) {
@@ -192,11 +185,15 @@ public class FioTBluetoothLE {
             if (mBluetoothManager.getConnectionState(mBluetoothDevice, BluetoothProfile.GATT) ==
                     BluetoothProfile.STATE_CONNECTED) {
                 Log.i(TAG, "Already connect to device");
-                mBluetoothGatt.disconnect();
+                return;
             }
         }
 
-        mBluetoothGatt = mBluetoothDevice.connectGatt(mContext, false, mBleCallback);
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            mBluetoothGatt = mBluetoothDevice.connectGatt(mContext, false, mBleCallback, BluetoothDevice.TRANSPORT_LE);
+        } else {
+            mBluetoothGatt = mBluetoothDevice.connectGatt(mContext, false, mBleCallback);
+        }
     }
 
     /**
@@ -220,13 +217,14 @@ public class FioTBluetoothLE {
      * Disconnect to remote device
      */
     public synchronized void closeConnection() {
-        if (mBluetoothGatt == null) return;
-
         mIsConnected = false;
         mWorkingBluetoothService.clear();
         mListCharacteristic.clear();
-        mBluetoothGatt.disconnect();
-        gattClose();
+
+        if (mBluetoothGatt != null) {
+            mBluetoothGatt.disconnect();
+            gattClose();
+        }
     }
 
     public void addWorkingService(ArrayList<FioTBluetoothService> services) {
@@ -431,22 +429,6 @@ public class FioTBluetoothLE {
                 e.printStackTrace();
             }
         }
-    }
-
-    /**
-     * Get connected device
-     *
-     * @return BluetoothDevice
-     */
-    public List<BluetoothDevice> getConnectedDevice() {
-        if (mBluetoothManager == null) {
-            Log.i(TAG, "getConnectedDevice:  + mBluetoothManager is null");
-            return null;
-        }
-
-        List<BluetoothDevice> devices = mBluetoothManager.getConnectedDevices(BluetoothProfile.GATT);
-
-        return devices;
     }
 
     /**
@@ -695,27 +677,6 @@ public class FioTBluetoothLE {
     };
 
     /**
-     * Enable phone's bluetooth. Should use when app opens at the first time.
-     * Check if user agree/disagree to enable bluetooth in on @onActivityResult()
-     */
-    public void enableBluetooth() {
-        if (mBluetoothAdapter.isEnabled()) return;
-
-        Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-        //enableBtIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        ((Activity) mContext).startActivityForResult(enableBtIntent, ENABLE_BLUETOOTH_REQUEST_CODE);
-    }
-
-    /**
-     * Enable phone's bluetooth without let user know it
-     */
-    public void forceEnableBluetooth() {
-        if (mBluetoothAdapter.isEnabled()) return;
-
-        mBluetoothAdapter.enable();
-    }
-
-    /**
      * Discovery service of connected device.
      * Result will be in @onServicesDiscovered() callback
      */
@@ -733,11 +694,6 @@ public class FioTBluetoothLE {
 
         mBluetoothGatt.close();
         mBluetoothGatt = null;
-    }
-
-    public int getBondState(String address) {
-        mBluetoothDevice = mBluetoothAdapter.getRemoteDevice(address);
-        return mBluetoothDevice.getBondState();
     }
 
     private BluetoothLEReadListener readListener;

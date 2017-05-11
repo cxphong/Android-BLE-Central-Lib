@@ -3,10 +3,7 @@ package com.bluetooth.le;
 import android.Manifest;
 import android.app.Activity;
 import android.app.Application;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothManager;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -21,8 +18,6 @@ import com.example.com.bluetooth.le.R;
 
 public class FiotBluetoothInit {
     private static final String TAG = "FiotBluetoothInit";
-    private static final int REQUEST_ENABLE_BT = 2006;
-    private static final int REQUEST_PERMISSION = 2007;
     private static Context context;
     private static FiotBluetoothInitListener listener;
 
@@ -69,27 +64,15 @@ public class FiotBluetoothInit {
     }
 
     private static void checkBluetoothAndEnablePermission() {
-        if (!isBluetoothEnabled()) {
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            ((Activity) context).startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+        if (!FiotBluetoothUtils.isBluetoothEnabled(context)) {
+            FiotBluetoothUtils.enableBluetooth(context);
         } else {
             if (hasPermission()) {
                 listener.completed();
             } else {
-                requestPermission();
+                FiotBluetoothUtils.requestPermission(context);
             }
         }
-    }
-
-    /**
-     * Check phone's bluetooth is enable
-     *
-     * @return true on enable, false on disable
-     */
-    private static boolean isBluetoothEnabled() {
-        final BluetoothManager bluetoothManager =
-                (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
-        return bluetoothManager.getAdapter().isEnabled();
     }
 
     private static boolean hasPermission() {
@@ -103,14 +86,7 @@ public class FiotBluetoothInit {
         return true;
     }
 
-    private static void requestPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            ((Activity) context).requestPermissions(new String[]{
-                    Manifest.permission.ACCESS_COARSE_LOCATION,
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-            }, REQUEST_PERMISSION);
-        }
-    }
+
 
     static Application.ActivityLifecycleCallbacks activityLifecycleCallbacks = new Application.ActivityLifecycleCallbacks() {
         @Override
