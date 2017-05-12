@@ -41,6 +41,24 @@ public class FioTScanManager {
     }
 
     /**
+     * Start scan ble device
+     * @param filter
+     * @param ignoreExist
+     * @param listener
+     */
+    public void start(String filter,
+                      boolean ignoreExist,
+                      int duration,
+                      int sleep,
+                      ScanManagerListener listener) {
+        this.filter = filter;
+        this.ignoreExist = ignoreExist;
+        this.listener = listener;
+        ble.startScanning();
+    }
+
+
+    /**
      * Stop scan ble device
      */
     public void stop() {

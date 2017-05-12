@@ -37,7 +37,7 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
     }
 
     private BluetoothDevice device;
-    private List<FioTBluetoothService> services = new ArrayList<>();
+    private ArrayList<FioTBluetoothService> services = new ArrayList<>();
     private FioTBluetoothLE ble;
     private FioTConnectManagerListener listener;
     private Context mContext;
@@ -66,7 +66,11 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
         this.services = services;
 
         status = disconnected;
-        ble = new FioTBluetoothLE(context);
+        initLE();
+    }
+
+    private void initLE() {
+        ble = new FioTBluetoothLE(mContext);
         ble.setBluetoothLEListener(this);
         ble.setBluetoothLEReadListener(this);
         ble.addWorkingService(services);
@@ -98,7 +102,6 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
     public void end() {
         Log.i(TAG, "Connect manager end");
         status = disconnected;
-        listener = null;
 
         if (ble != null) {
             ble.disableWrite();
@@ -146,21 +149,23 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
         }
     }
 
-    public void reConnect(final String oldAddress, final String oldName, final int timeoutmill) {
+    public void reConnect() {
         scanManager = new FioTScanManager(mContext);
         scanManager.start("", true, new FioTScanManager.ScanManagerListener() {
             @Override
             public void onFoundDevice(BluetoothDevice device, int rssi) {
-                if (device.getAddress().equalsIgnoreCase(oldAddress) ||
-                        device.getName().equalsIgnoreCase(oldName)) {
+                if (device.getAddress().equalsIgnoreCase(FioTManager.this.device.getAddress()) ||
+                        device.getName().equalsIgnoreCase(FioTManager.this.device.getName())) {
                     Log.i(TAG, "onFoundDevice: " + name);
 
                     if (status == disconnected) {
                         status = connecting;
                         scanManager.stop();
                         scanManager.end();
+
+                        initLE();
                         ble.connect(getDevice().getAddress());
-                        startConnectTimeout(timeoutmill);
+                        connect();
                     } else {
                         Log.i(TAG, "connect: already connected or connecting");
                     }
@@ -196,22 +201,6 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
 
         return true;
     }
-
-//    public int write(String characUuid, byte[] data) {
-//        FioTBluetoothCharacteristic characteristic = getCharacteristic(characUuid);
-//        Queue<byte[]> queue = characteristic.getmDataToWriteQueue();
-//
-//        queue.add(data);
-//
-//        if (queue)
-//        return ble.writeDataToCharacteristic(getCharacteristic(characUuid).getCharacteristic(),
-//                characteristic.getmDataToWriteQueue().remove());
-//    }
-//
-//    public int write(FioTBluetoothCharacteristic characteristic, byte[] data) {
-//        characteristic.getmDataToWriteQueue().add(data);
-//        return ble.writeDataToCharacteristic(getCharacteristic(characteristic.getUuid()).getCharacteristic(), data);
-//    }
 
     public synchronized void write(String characUuid,
                       byte[] data,
@@ -354,7 +343,7 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
         this.listener = listener;
     }
 
-    private FioTBluetoothCharacteristic getCharacteristic(String characUuid) {
+    public FioTBluetoothCharacteristic getCharacteristic(String characUuid) {
         for (FioTBluetoothService service : services) {
             for (FioTBluetoothCharacteristic fioTBluetoothCharacteristic : service.getCharacteristics()) {
                 if (fioTBluetoothCharacteristic.getUuid().equalsIgnoreCase(characUuid)) {
@@ -366,7 +355,7 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
         return null;
     }
 
-    private FioTBluetoothCharacteristic getCharacteristic(BluetoothGattCharacteristic characteristic) {
+    public FioTBluetoothCharacteristic getCharacteristic(BluetoothGattCharacteristic characteristic) {
         FioTBluetoothCharacteristic ch = null;
 
         for (FioTBluetoothService service : services) {
@@ -380,4 +369,5 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
 
         return ch;
     }
+
 }
