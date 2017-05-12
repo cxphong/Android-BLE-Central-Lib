@@ -5,7 +5,9 @@ package com.bluetooth.le.exception;
  */
 
 public class NotFromActivity extends Exception {
+
     public NotFromActivity(String detailMessage) {
         super(detailMessage);
     }
+    
 }

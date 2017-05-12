@@ -60,7 +60,7 @@ public class FioTBluetoothLE {
     private BluetoothDevice mBluetoothDevice;
     private BluetoothGatt mBluetoothGatt;
     private List<FioTBluetoothService> mWorkingBluetoothService = new ArrayList<>();
-    private Queue<BluetoothGattCharacteristic> mEnableNotifyQueue = new LinkedList<>();
+    private Queue<FioTBluetoothCharacteristic> mEnableNotifyQueue = new LinkedList<>();
     private Queue<byte[]> mDataToWriteQueue = new LinkedList<byte[]>();
     private ArrayList<BluetoothGattCharacteristic> mListCharacteristic = new ArrayList<BluetoothGattCharacteristic>();
 
@@ -537,10 +537,10 @@ public class FioTBluetoothLE {
         }
     }
 
-    public void startListenNotification(BluetoothGattCharacteristic ch) {
+    public void setNotification(FioTBluetoothCharacteristic ch) {
         mEnableNotifyQueue.add(ch);
         if (mEnableNotifyQueue.size() == 1) {
-            setNotificationForCharacteristic(mEnableNotifyQueue.element(), true);
+            setNotificationForCharacteristic(mEnableNotifyQueue.element());
         }
     }
 
@@ -548,22 +548,23 @@ public class FioTBluetoothLE {
      * Enable characteristic notification
      *
      * @param ch
-     * @param enabled
      */
-    private void setNotificationForCharacteristic(BluetoothGattCharacteristic ch, boolean enabled) {
+    private void setNotificationForCharacteristic(FioTBluetoothCharacteristic ch) {
         if (mBluetoothAdapter == null || mBluetoothGatt == null || ch == null) {
             Log.i(TAG, "characteristic " + ch);
             return;
         }
 
-        boolean success = mBluetoothGatt.setCharacteristicNotification(ch, enabled);
+        boolean enabled = ch.isNotify();
+
+        boolean success = mBluetoothGatt.setCharacteristicNotification(ch.getCharacteristic(), enabled);
         if (!success) {
             Log.e(TAG, "Setting proper notification status for characteristic failed!");
         }
 
         // This is also sometimes required (e.g. for heart rate monitors) to enable notifications/indications
         // see: https://developer.bluetooth.org/gatt/descriptors/Pages/DescriptorViewer.aspx?u=org.bluetooth.descriptor.gatt.client_characteristic_configuration.xml
-        BluetoothGattDescriptor descriptor = ch.getDescriptor(UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"));
+        BluetoothGattDescriptor descriptor = ch.getCharacteristic().getDescriptor(UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"));
         if (descriptor != null) {
             Log.i(TAG, "setNotificationForCharacteristic: " + ch.getUuid().toString());
             byte[] val = enabled ? BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE : BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE;
@@ -572,7 +573,7 @@ public class FioTBluetoothLE {
         } else {
             mEnableNotifyQueue.remove();
             if (mEnableNotifyQueue.size() > 0) {
-                setNotificationForCharacteristic(mEnableNotifyQueue.element(), true);
+                setNotificationForCharacteristic(mEnableNotifyQueue.element());
             } else {
                 mBluetoothLEListener.onConnectResult(CONNECT_SUCCESS, 0);
             }
@@ -718,7 +719,7 @@ public class FioTBluetoothLE {
                 timer.schedule(new TimerTask() {
                     @Override
                     public void run() {
-                        setNotificationForCharacteristic(mEnableNotifyQueue.element(), true);
+                        setNotificationForCharacteristic(mEnableNotifyQueue.element());
                     }
                 }, 500);
             } else {

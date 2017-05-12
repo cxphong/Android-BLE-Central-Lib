@@ -24,6 +24,9 @@ public class FiotBluetoothUtils {
     private static final int REQUEST_ENABLE_BT = 2006;
     private static final int REQUEST_PERMISSION = 2007;
 
+    /**
+     * Get list of bonded bluetooth device
+     */
     public static Set<BluetoothDevice> getBondedDevices(Context context) {
         BluetoothManager bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
         BluetoothAdapter adapter = bluetoothManager.getAdapter();
@@ -41,11 +44,17 @@ public class FiotBluetoothUtils {
         return bluetoothManager.getAdapter().isEnabled();
     }
 
+    /**
+     * Enable bluetooth if it is disabled by show a dialog
+     */
     public static void enableBluetooth(Context context) {
         Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
         ((Activity) context).startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
     }
 
+    /*
+     * Request location permission from Android 6.0 later
+     */
     public static void requestPermission(Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             ((Activity) context).requestPermissions(new String[]{
