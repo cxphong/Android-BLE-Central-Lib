@@ -86,8 +86,6 @@ public class FiotBluetoothInit {
         return true;
     }
 
-
-
     static Application.ActivityLifecycleCallbacks activityLifecycleCallbacks = new Application.ActivityLifecycleCallbacks() {
         @Override
         public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
