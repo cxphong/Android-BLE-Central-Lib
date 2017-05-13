@@ -255,7 +255,7 @@ public class ByteUtils {
     public static boolean compare2Array(byte[] b1, byte[] b2) {
         if (b1 == null && b2 == null) return true;
 
-        if (b1 == null | b2 == null) return false;
+        if (b1 == null || b2 == null) return false;
 
         if (b1 == b2) return true;
 

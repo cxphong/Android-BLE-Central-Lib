@@ -1,5 +1,6 @@
 package com.bluetooth.le;
 
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
@@ -25,11 +26,14 @@ import static com.bluetooth.le.FioTManager.Status.disconnected;
 /**
  * Created by caoxuanphong on    7/25/16.
  */
-
 public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBluetoothLE.BluetoothLEReadListener {
     private static final String TAG = "FioTManager";
+
+    /* After timeout @onConnectFail() is called */
     private static final int CONNECT_TIMEOUT_MILLISECOND = 30000;
-    private static final int DATA_CHUNK = 20; // 20 bytes
+
+    /* Number of bytes send to characteristic a time, limit 20 bytes, more cause error */
+    private static final int DATA_CHUNK = 20;
 
     public enum Status {
         disconnected,
@@ -45,6 +49,7 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
     private Timer connectTimeout;
     private FioTScanManager scanManager;
     private Status status;
+    private FiotBluetoothAdapterState bluetoothState;
 
     /**
      * State callback
@@ -59,6 +64,12 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
         void onNotify(FioTBluetoothCharacteristic characteristic);
 
         void onRead(FioTBluetoothCharacteristic characteristic);
+
+        void onReadRSSI(int rssi);
+
+        void onBluetoothOff();
+
+        void onBluetoothOn();
     }
 
     public FioTManager(Context context, BluetoothDevice device, ArrayList<FioTBluetoothService> services) {
@@ -67,9 +78,29 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
         this.services = services;
 
         status = disconnected;
+
+        bluetoothState = new FiotBluetoothAdapterState();
+        bluetoothState.startListener(mContext, new FiotBluetoothAdapterState.FiotBluetoothAdapterStateListener() {
+            @Override
+            public void onStateChanged(int newState) {
+                if (newState == BluetoothAdapter.STATE_OFF) {
+                    if (listener != null) {
+                        listener.onBluetoothOff();
+                    }
+                } else if (newState == BluetoothAdapter.STATE_ON) {
+                    if (listener != null) {
+                        listener.onBluetoothOn();
+                    }
+                }
+            }
+        });
+
         initLE();
     }
 
+    /**
+     * Init FiotBluetoothLE
+     */
     private void initLE() {
         ble = new FioTBluetoothLE(mContext);
         ble.setBluetoothLEListener(this);
@@ -150,9 +181,12 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
         }
     }
 
+    /**
+     * Scan device then connect to it
+     */
     public void reConnect() {
         scanManager = new FioTScanManager(mContext);
-        scanManager.start("", true, new FioTScanManager.ScanManagerListener() {
+        scanManager.start("", true, FioTScanManager.ScanMode.LOW_BATTERY, new FioTScanManager.ScanManagerListener() {
             @Override
             public void onFoundDevice(BluetoothDevice device, int rssi) {
                 if (device.getAddress().equalsIgnoreCase(FioTManager.this.device.getAddress()) ||
@@ -290,7 +324,6 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
 
         FioTBluetoothCharacteristic characteristic = getCharacteristic(characteristicUUID);
 
-
         if (characteristic == null) {
             throw new CharacteristicNotFound(mContext.getResources().
                     getString(R.string.exception_characteristic_not_found) +
@@ -404,7 +437,9 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
 
     @Override
     public void onReadRemoteRSSI(int rssi, int status) {
-
+        if (listener != null) {
+            listener.onReadRSSI(rssi);
+        }
     }
 
     @Override

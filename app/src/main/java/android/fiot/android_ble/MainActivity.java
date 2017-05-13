@@ -19,6 +19,7 @@ import com.bluetooth.le.FioTBluetoothService;
 import com.bluetooth.le.FioTManager;
 import com.bluetooth.le.FioTScanManager;
 import com.bluetooth.le.FiotBluetoothInit;
+import com.bluetooth.le.exception.CharacteristicNotFound;
 import com.bluetooth.le.exception.NotFromActivity;
 import com.bluetooth.le.exception.NotSupportBleException;
 import com.bluetooth.le.utils.ByteUtils;
@@ -121,7 +122,7 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
 
     private void startScan() {
         devicesList.clear();
-        scanManager.start("", true, new FioTScanManager.ScanManagerListener() {
+        scanManager.start("", true, FioTScanManager.ScanMode.LOW_BATTERY, new FioTScanManager.ScanManagerListener() {
             @Override
             public void onFoundDevice(BluetoothDevice device, int rssi) {
                 Log.i(TAG, "onFoundDevice: " + device.getName());
@@ -212,7 +213,11 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
 
                             @Override
                             public void onConnected() {
-                                manager.write(REQUEST_CHARAC, SETMODE_CALIBSENS.getBytes());
+                                try {
+                                    manager.write(REQUEST_CHARAC, SETMODE_CALIBSENS.getBytes());
+                                } catch (CharacteristicNotFound characteristicNotFound) {
+                                    characteristicNotFound.printStackTrace();
+                                }
                             }
 
                             @Override
@@ -230,6 +235,21 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
                                 Log.i(TAG, "onRead: ");
                                 Log.i(TAG, "onRead: " + ByteUtils.toHexString(characteristic.getCharacteristic().getValue()));
                                 Log.i(TAG, "onRead: " + ByteUtils.toString(characteristic.getCharacteristic().getValue()));
+                            }
+
+                            @Override
+                            public void onReadRSSI(int rssi) {
+
+                            }
+
+                            @Override
+                            public void onBluetoothOff() {
+                                Log.d(TAG, "onBluetoothOff: ");
+                            }
+
+                            @Override
+                            public void onBluetoothOn() {
+                                Log.d(TAG, "onBluetoothOn: ");
                             }
                         });
 
