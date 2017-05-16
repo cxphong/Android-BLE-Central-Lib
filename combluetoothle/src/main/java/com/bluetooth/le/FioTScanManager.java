@@ -7,6 +7,7 @@ import android.os.Looper;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.UUID;
 
 import static com.bluetooth.le.FioTScanManager.ScanMode.CONTINUOUS;
 import static com.bluetooth.le.FioTScanManager.ScanMode.LOW_BATTERY;
@@ -44,21 +45,25 @@ public class FioTScanManager {
     }
 
     /**
-     * Start scan ble device
+     * Start scan ble
+     *
      * @param filter
      * @param ignoreExist
+     * @param scanMode
+     * @param servicesUUID
      * @param listener
      */
     public void start(final String filter,
                       final boolean ignoreExist,
                       final ScanMode scanMode,
+                      final UUID[] servicesUUID,
                       final ScanManagerListener listener) {
         this.scanMode = scanMode;
         this.filter = filter;
         this.ignoreExist = ignoreExist;
         this.listener = listener;
 
-        ble.startScanning();
+        ble.startScanning(servicesUUID);
 
         if (scanMode == LOW_BATTERY) {
             if (Looper.myLooper() == null) {
@@ -83,6 +88,7 @@ public class FioTScanManager {
                             start(filter,
                                     ignoreExist,
                                     scanMode,
+                                    servicesUUID,
                                     listener);
                         }
                     }, SLEEP_TIME_IN_LOW_BATTERY);

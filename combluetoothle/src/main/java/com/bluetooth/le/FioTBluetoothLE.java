@@ -156,11 +156,11 @@ public class FioTBluetoothLE {
      * Start scan nearby bluetooth device
      * Founded device will be in @onLeScan()
      */
-    public synchronized void startScanning() {
+    public synchronized void startScanning(UUID[] servicesUUID) {
         if (mScanning) return;
 
         Log.i(TAG, "startScanning");
-        mBluetoothAdapter.startLeScan(mDeviceFoundCallback);
+        mBluetoothAdapter.startLeScan(servicesUUID, mDeviceFoundCallback);
         mScanning = true;
     }
 

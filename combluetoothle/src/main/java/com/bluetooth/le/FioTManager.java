@@ -186,7 +186,7 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
      */
     public void reConnect() {
         scanManager = new FioTScanManager(mContext);
-        scanManager.start("", true, FioTScanManager.ScanMode.LOW_BATTERY, new FioTScanManager.ScanManagerListener() {
+        scanManager.start("", true, FioTScanManager.ScanMode.LOW_BATTERY, null, new FioTScanManager.ScanManagerListener() {
             @Override
             public void onFoundDevice(BluetoothDevice device, int rssi) {
                 if (device.getAddress().equalsIgnoreCase(FioTManager.this.device.getAddress()) ||

@@ -122,7 +122,8 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
 
     private void startScan() {
         devicesList.clear();
-        scanManager.start("", true, FioTScanManager.ScanMode.LOW_BATTERY, new FioTScanManager.ScanManagerListener() {
+        scanManager.start("", true, FioTScanManager.ScanMode.CONTINUOUS,
+                null, new FioTScanManager.ScanManagerListener() {
             @Override
             public void onFoundDevice(BluetoothDevice device, int rssi) {
                 Log.i(TAG, "onFoundDevice: " + device.getName());
