@@ -1,2 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<merger version="3"><dataSet config="main"><source path="/Users/caoxuanphong/Documents/PROJECT/BLE-Library/FioTBle-Android/combluetoothle/src/main/assets"/><source path="/Users/caoxuanphong/Documents/PROJECT/BLE-Library/FioTBle-Android/combluetoothle/build/generated/assets/shaders/release"/></dataSet><dataSet config="release"><source path="/Users/caoxuanphong/Documents/PROJECT/BLE-Library/FioTBle-Android/combluetoothle/src/release/assets"/></dataSet></merger>
