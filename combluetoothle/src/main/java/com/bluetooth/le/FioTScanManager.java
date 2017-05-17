@@ -6,6 +6,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
+import com.bluetooth.le.exception.BluetoothOffException;
+
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -57,7 +59,7 @@ public class FioTScanManager {
                       final boolean ignoreExist,
                       final ScanMode scanMode,
                       final UUID[] servicesUUID,
-                      final ScanManagerListener listener) {
+                      final ScanManagerListener listener) throws BluetoothOffException {
         this.scanMode = scanMode;
         this.filter = filter;
         this.ignoreExist = ignoreExist;
@@ -70,26 +72,28 @@ public class FioTScanManager {
                 Looper.prepare();
                 Looper.loop();
             } else {
-                Log.d(TAG, "start: log is already ok");
+                Log.d(TAG, "start: loop is already ok");
             }
 
             handler1 = new Handler();
             handler1.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    Log.i(TAG, "run: 1");
                     ble.stopScanning();
 
                     handler2 = new Handler();
                     handler2.postDelayed(new Runnable() {
                         @Override
                         public void run() {
-                            Log.i(TAG, "run: 2");
-                            start(filter,
-                                    ignoreExist,
-                                    scanMode,
-                                    servicesUUID,
-                                    listener);
+                            try {
+                                start(filter,
+                                        ignoreExist,
+                                        scanMode,
+                                        servicesUUID,
+                                        listener);
+                            } catch (BluetoothOffException e) {
+                                e.printStackTrace();
+                            }
                         }
                     }, SLEEP_TIME_IN_LOW_BATTERY);
                 }

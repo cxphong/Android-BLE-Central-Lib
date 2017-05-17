@@ -213,7 +213,11 @@ public class ByteUtils {
      * @return
      */
     public static byte[] subByteArray(byte[] src, int startPos, int num) {
-        int endPos = 0;
+        if (startPos < 0 || num <= 0) {
+            return null;
+        }
+
+        int endPos;
 
         if (startPos + num > src.length) {
             endPos = src.length;
@@ -224,6 +228,22 @@ public class ByteUtils {
         return Arrays.copyOfRange(src, startPos, endPos );
     }
 
+    /**
+     * Append array to an array
+     * @param src
+     * @param bytes
+     * @param startPos
+     * @return
+     */
+    public static byte[] append(byte[] src, byte[] bytes, int startPos) {
+        int j = 0;
+        for (int i = startPos; i < startPos + bytes.length; i++) {
+            src[i] = bytes[j++];
+        }
+
+        return src;
+    }
+    
     /**
      * Convert byte array into string array of hex
      * @param a
@@ -260,11 +280,11 @@ public class ByteUtils {
         if (b1 == b2) return true;
 
         if (b1.length != b2.length) return false;
-
+        
         for (int i = 0; i < b1.length; i++) {
             if (b1[i] != b2[i]) return false;
         }
-
+        
         return true;
     }
 
@@ -281,7 +301,7 @@ public class ByteUtils {
         if (src == child) return true;
 
         if (child.length > src.length) {
-            return false;
+          return false;
         } else if (child.length == src.length) {
             for (int i = 0; i < src.length; i++) {
                 if (src[i] != child[i]) {

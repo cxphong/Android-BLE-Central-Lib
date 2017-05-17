@@ -19,6 +19,7 @@ import com.bluetooth.le.FioTBluetoothService;
 import com.bluetooth.le.FioTManager;
 import com.bluetooth.le.FioTScanManager;
 import com.bluetooth.le.FiotBluetoothInit;
+import com.bluetooth.le.exception.BluetoothOffException;
 import com.bluetooth.le.exception.CharacteristicNotFound;
 import com.bluetooth.le.exception.NotFromActivity;
 import com.bluetooth.le.exception.NotSupportBleException;
@@ -122,15 +123,19 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
 
     private void startScan() {
         devicesList.clear();
-        scanManager.start("", true, FioTScanManager.ScanMode.CONTINUOUS,
-                null, new FioTScanManager.ScanManagerListener() {
-            @Override
-            public void onFoundDevice(BluetoothDevice device, int rssi) {
-                Log.i(TAG, "onFoundDevice: " + device.getName());
-                devicesList.add(new BLEDevice(device, rssi));
-                showDevices(devicesList);
-            }
-        });
+        try {
+            scanManager.start("", true, FioTScanManager.ScanMode.CONTINUOUS,
+                    null, new FioTScanManager.ScanManagerListener() {
+                @Override
+                public void onFoundDevice(BluetoothDevice device, int rssi) {
+                    Log.i(TAG, "onFoundDevice: " + device.getName());
+                    devicesList.add(new BLEDevice(device, rssi));
+                    showDevices(devicesList);
+                }
+            });
+        } catch (BluetoothOffException e) {
+            e.printStackTrace();
+        }
     }
 
     private void showDevices(List<BLEDevice> devicesList) {

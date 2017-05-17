@@ -7,6 +7,7 @@ import android.bluetooth.BluetoothGattCharacteristic;
 import android.content.Context;
 import android.util.Log;
 
+import com.bluetooth.le.exception.BluetoothOffException;
 import com.bluetooth.le.exception.CharacteristicNotFound;
 import com.bluetooth.le.exception.IncorrectState;
 import com.bluetooth.le.utils.ByteUtils;
@@ -184,7 +185,7 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
     /**
      * Scan device then connect to it
      */
-    public void reConnect() {
+    public void reConnect() throws BluetoothOffException {
         scanManager = new FioTScanManager(mContext);
         scanManager.start("", true, FioTScanManager.ScanMode.LOW_BATTERY, null, new FioTScanManager.ScanManagerListener() {
             @Override

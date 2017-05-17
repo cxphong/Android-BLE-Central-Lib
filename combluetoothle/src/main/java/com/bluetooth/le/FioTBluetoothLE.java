@@ -13,7 +13,9 @@ import android.content.Context;
 import android.os.Build;
 import android.util.Log;
 
+import com.bluetooth.le.exception.BluetoothOffException;
 import com.bluetooth.le.utils.ByteUtils;
+import com.example.com.bluetooth.le.R;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -156,8 +158,12 @@ public class FioTBluetoothLE {
      * Start scan nearby bluetooth device
      * Founded device will be in @onLeScan()
      */
-    public synchronized void startScanning(UUID[] servicesUUID) {
+    public synchronized void startScanning(UUID[] servicesUUID) throws BluetoothOffException {
         if (mScanning) return;
+
+        if (mBluetoothAdapter.getState() != BluetoothAdapter.STATE_ON) {
+            throw new BluetoothOffException(mContext.getString(R.string.bluetooth_not_on));
+        }
 
         Log.i(TAG, "startScanning");
         mBluetoothAdapter.startLeScan(servicesUUID, mDeviceFoundCallback);

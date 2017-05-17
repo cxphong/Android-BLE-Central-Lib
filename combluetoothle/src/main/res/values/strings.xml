@@ -4,4 +4,5 @@
     <string name="exception_not_support_ble">This android device does not support bluetooth low energy</string>
     <string name="exception_icorrect_state">Incorrect state, FiotBluetoothLE is null</string>
     <string name="exception_characteristic_not_found">Characteristic not found</string>
+    <string name="bluetooth_not_on">Bluetooth is not ON state</string>
 </resources>
