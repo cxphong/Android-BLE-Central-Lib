@@ -201,6 +201,11 @@ public class FioTBluetoothLE {
      * @param deviceAddress Remote device address
      */
     public void connect(String deviceAddress) {
+        if (mBluetoothAdapter == null) {
+            Log.e(TAG, "connect: mBluetoothAdapter is null");
+            return;
+        }
+
         mBluetoothDevice = mBluetoothAdapter.getRemoteDevice(deviceAddress);
 
         if (mBluetoothGatt != null) {
