@@ -123,6 +123,21 @@ public class FioTScanManager {
     public void end() {
         Log.i(TAG, "Scan manager end");
         ble.end();
+        list.clear();
+    }
+
+    public void removeDevice(String mac) {
+        BLEDevice device = null;
+
+        for (BLEDevice d : list) {
+            if (d.device.getAddress().equalsIgnoreCase(mac)) {
+                device = d;
+            }
+        }
+
+        if (device != null) {
+            list.remove(device);
+        }
     }
 
     FioTBluetoothLE.BluetoothLEScanListener scanListener = new FioTBluetoothLE.BluetoothLEScanListener() {
@@ -148,10 +163,14 @@ public class FioTScanManager {
     };
 
     private boolean exist(BluetoothDevice device) {
-        for (BLEDevice d : list) {
-            if (d.device.getAddress().equalsIgnoreCase(device.getAddress())) {
-                return true;
+        try {
+            for (BLEDevice d : list) {
+                if (d.device.getAddress().equalsIgnoreCase(device.getAddress())) {
+                    return true;
+                }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         return false;
