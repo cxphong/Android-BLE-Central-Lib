@@ -24,6 +24,26 @@ public class FiotBluetoothUtils {
     private static final int REQUEST_ENABLE_BT = 2006;
     private static final int REQUEST_PERMISSION = 2007;
 
+    public interface FioTBluetoothStateListener {
+        void onBluetoothOff();
+
+        void onBluetoothOn();
+    }
+
+    public static void listenBluetoothState(Context context, final FioTBluetoothStateListener listener) {
+        FiotBluetoothAdapterState bluetoothState = new FiotBluetoothAdapterState();
+        bluetoothState.startListener(context, new FiotBluetoothAdapterState.FiotBluetoothAdapterStateListener() {
+            @Override
+            public void onStateChanged(int newState) {
+                if (newState == BluetoothAdapter.STATE_OFF) {
+                    listener.onBluetoothOff();
+                } else if (newState == BluetoothAdapter.STATE_ON) {
+                    listener.onBluetoothOn();
+                }
+            }
+        });
+    }
+
     /**
      * Get list of bonded bluetooth device
      */

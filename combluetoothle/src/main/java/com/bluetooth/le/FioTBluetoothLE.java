@@ -267,19 +267,19 @@ public class FioTBluetoothLE {
     /**
      * Write data to remote device. Writing is synchronous, mean one by one.
      *
-     * @param ch          Characteristic to write
+     * @param ch          Characteristic to writeWithQueue
      * @param dataToWrite data to be written
      */
-    public int writeDataToCharacteristic(BluetoothGattCharacteristic ch, final byte[] dataToWrite) {
+    public int writeToCharacteristic(BluetoothGattCharacteristic ch, final byte[] dataToWrite) {
         if (null == ch || mBluetoothGatt == null) {
-            Log.i(TAG, "writeDataToCharacteristic: character "
+            Log.i(TAG, "writeToCharacteristic: character "
                     + ch
                     + "mBluetoothGatt = "
                     + mBluetoothGatt);
             return 1;
         }
 
-        Log.i(TAG, "writeDataToCharacteristic: " + ByteUtils.toHexString(dataToWrite));
+        Log.i(TAG, "writeToCharacteristic: " + ByteUtils.toHexString(dataToWrite));
         ch.setValue(dataToWrite);
         mBluetoothGatt.writeCharacteristic(ch);
         ByteUtils.toHexString(dataToWrite);
@@ -290,16 +290,16 @@ public class FioTBluetoothLE {
         void sent(int num);
     }
 
-    public void writeDataToCharacteristic(final BluetoothGattCharacteristic ch,
-                                          final byte[] dataToWrite,
-                                          final int delayTime,
-                                          final int blockSize) {
-        writeDataToCharacteristic(ch, dataToWrite, delayTime, blockSize, null);
+    public void write(final BluetoothGattCharacteristic ch,
+                                  final byte[] dataToWrite,
+                                  final int delayTime,
+                                  final int blockSize) {
+        writeWithReadBack(ch, dataToWrite, delayTime, blockSize, null);
     }
 
     /**
      * Step 1: Write chunk
-     * Step 2: Wait until response write success
+     * Step 2: Wait until response writeWithQueue success
      * Step 3: Read back data
      * Step 4: If data equal written data, next
      *
@@ -309,7 +309,7 @@ public class FioTBluetoothLE {
      * @param blockSize
      * @param listener
      */
-    public void writeDataToCharacteristic(final BluetoothGattCharacteristic ch,
+    public void writeWithoutReadBack(final BluetoothGattCharacteristic ch,
                                           final byte[] dataToWrite,
                                           final int delayTime,
                                           final int blockSize,
@@ -320,11 +320,11 @@ public class FioTBluetoothLE {
         while (numBytesSent < dataToWrite.length && !disableWrite) {
             byte[] bytes = ByteUtils.subByteArray(dataToWrite, numBytesSent, blockSize);
 
-            writeDataToCharacteristic(ch, bytes);
+            writeToCharacteristic(ch, bytes);
             numBytesSent += bytes.length;
             compareBytes = bytes;
 
-            Log.i(TAG, "writeDataToCharacteristic: " + ByteUtils.toHexString(dataToWrite));
+            Log.i(TAG, "writeWithoutReadBack: " + ByteUtils.toHexString(bytes));
             Log.i(TAG, "remain " + (dataToWrite.length - numBytesSent));
 
             if (listener != null) {
@@ -346,7 +346,67 @@ public class FioTBluetoothLE {
                     1000
             );
 
-            // Wait until write successful
+            // Wait until writeWithQueue successful
+            try {
+                synchronized (write) {
+                    write.wait();
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * Step 1: Write chunk
+     * Step 2: Wait until response writeWithQueue success
+     * Step 3: Read back data
+     * Step 4: If data equal written data, next
+     *
+     * @param ch
+     * @param dataToWrite
+     * @param delayTime
+     * @param blockSize
+     * @param listener
+     */
+    public void writeWithReadBack(final BluetoothGattCharacteristic ch,
+                                  final byte[] dataToWrite,
+                                  final int delayTime,
+                                  final int blockSize,
+                                  final SendListener listener) {
+        int numBytesSent = 0;
+        compareCharacteristics = ch;
+
+        while (numBytesSent < dataToWrite.length && !disableWrite) {
+            byte[] bytes = ByteUtils.subByteArray(dataToWrite, numBytesSent, blockSize);
+
+            writeToCharacteristic(ch, bytes);
+            numBytesSent += bytes.length;
+            compareBytes = bytes;
+
+            Log.i(TAG, "writeWithReadBack: " + ByteUtils.toHexString(dataToWrite));
+            Log.i(TAG, "remain " + (dataToWrite.length - numBytesSent));
+
+            if (listener != null) {
+                listener.sent(numBytesSent);
+            }
+
+            // After 1s
+            writeTimer = new Timer();
+            writeTimer.schedule(
+                    new java.util.TimerTask() {
+                        @Override
+                        public void run() {
+                            synchronized (write) {
+                                Log.i(TAG, "Write timeout");
+                                write.notify();
+                            }
+                        }
+                    },
+                    1000
+            );
+
+            // Wait until writeWithQueue successful
             try {
                 synchronized (write) {
                     write.wait();
@@ -368,11 +428,11 @@ public class FioTBluetoothLE {
                                     counter++;
                                 } else {
                                     // Too long (~10s) and characteristic does not update wanted value
-                                    // 99% - write fail and need retry
-                                    // 1% - write success but firmware did not update it value
+                                    // 99% - writeWithQueue fail and need retry
+                                    // 1% - writeWithQueue success but firmware did not update it value
 
                                     counter = 0;
-                                    writeDataToCharacteristic(compareCharacteristics, compareBytes);
+                                    writeToCharacteristic(compareCharacteristics, compareBytes);
                                 }
                             }
                         }
@@ -385,74 +445,6 @@ public class FioTBluetoothLE {
             try {
                 synchronized (read) {
                     read.wait();
-                    readTimer.cancel();
-                }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    /**
-     * Same above but less delay time
-     *
-     * @param ch
-     * @param dataToWrite
-     * @param delayTime
-     * @param blockSize
-     */
-    public void writeDataToCharacteristic2(final BluetoothGattCharacteristic ch,
-                                           final byte[] dataToWrite,
-                                           final int delayTime,
-                                           final int blockSize) {
-        int numBytesSent = 0;
-        compareCharacteristics = ch;
-
-        while (numBytesSent < dataToWrite.length && !disableWrite) {
-            byte[] bytes = ByteUtils.subByteArray(dataToWrite, numBytesSent, blockSize);
-
-            writeDataToCharacteristic(ch, bytes);
-            numBytesSent += bytes.length;
-            compareBytes = bytes;
-
-            writeTimer = new Timer();
-            writeTimer.schedule(
-                    new java.util.TimerTask() {
-                        @Override
-                        public void run() {
-                            synchronized (FioTBluetoothLE.this) {
-                                FioTBluetoothLE.this.notify();
-                            }
-                        }
-                    },
-                    300
-            );
-
-            // Wait until write successful
-            try {
-                synchronized (FioTBluetoothLE.this) {
-                    FioTBluetoothLE.this.wait();
-                }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            // Read back data to check characteristic updated value
-            readTimer = new Timer();
-            readTimer.schedule(
-                    new java.util.TimerTask() {
-                        @Override
-                        public void run() {
-                            requestCharacteristicValue(ch);
-                        }
-                    },
-                    delayTime
-            );
-
-            // Wait until read successful
-            try {
-                synchronized (FioTBluetoothLE.this) {
-                    FioTBluetoothLE.this.wait(300);
                     readTimer.cancel();
                 }
             } catch (InterruptedException e) {
@@ -597,7 +589,9 @@ public class FioTBluetoothLE {
     private BluetoothAdapter.LeScanCallback mDeviceFoundCallback = new BluetoothAdapter.LeScanCallback() {
         @Override
         public void onLeScan(final BluetoothDevice device, final int rssi, final byte[] scanRecord) {
-            mBluetoothLEScanListener.onFoundDevice(device, rssi);
+            if (mBluetoothLEScanListener != null) {
+                mBluetoothLEScanListener.onFoundDevice(device, rssi);
+            }
         }
     };
 

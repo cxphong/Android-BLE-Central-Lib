@@ -26,6 +26,10 @@ public class FioTBluetoothDevice {
         this.services = services;
     }
 
+    public BluetoothDevice getBluetoothDevice() {
+        return device;
+    }
+
     public Status getStatus() {
         return status;
     }

@@ -25,7 +25,7 @@ public class FioTScanManager {
     private ScanManagerListener listener;
     private FioTBluetoothLE ble;
     private volatile boolean ignoreExist;
-    private ArrayList<BLEDevice> list = new ArrayList<>();
+    private ArrayList<FioTBluetoothDevice> list = new ArrayList<>();
     private Handler handler1;
     private Handler handler2;
 
@@ -37,13 +37,12 @@ public class FioTScanManager {
     private ScanMode scanMode = CONTINUOUS;
 
     public interface ScanManagerListener {
-        void onFoundDevice(BluetoothDevice device,
+        void onFoundDevice(FioTBluetoothDevice device,
                            final int rssi);
     }
 
     public FioTScanManager(Context context) {
         ble = new FioTBluetoothLE(context);
-        ble.setBluetoothLEScanListener(scanListener);
     }
 
     /**
@@ -64,6 +63,7 @@ public class FioTScanManager {
         this.filter = filter;
         this.ignoreExist = ignoreExist;
         this.listener = listener;
+        ble.setBluetoothLEScanListener(scanListener);
 
         ble.startScanning(servicesUUID);
 
@@ -116,6 +116,7 @@ public class FioTScanManager {
             }
         }
 
+        ble.setBluetoothLEScanListener(null);
         ble.stopScanning();
         list.clear();
     }
@@ -127,10 +128,10 @@ public class FioTScanManager {
     }
 
     public void removeDevice(String mac) {
-        BLEDevice device = null;
+        FioTBluetoothDevice device = null;
 
-        for (BLEDevice d : list) {
-            if (d.device.getAddress().equalsIgnoreCase(mac)) {
+        for (FioTBluetoothDevice d : list) {
+            if (d.getBluetoothDevice().getAddress().equalsIgnoreCase(mac)) {
                 device = d;
             }
         }
@@ -146,16 +147,19 @@ public class FioTScanManager {
             synchronized (this) {
                 if (device.getName() == null) return;
 
-                if (device.getName().contains(filter)) {
+                Log.i(TAG, "onFoundDevice: " + this);
 
+                FioTBluetoothDevice fioTBluetoothDevice = null;
+                if (device.getName().contains(filter)) {
                     if (!exist(device)) {
-                        list.add(new BLEDevice(rssi, device));
+                        fioTBluetoothDevice = new FioTBluetoothDevice(device, null);
+                        list.add(fioTBluetoothDevice);
                     } else if (ignoreExist) {
                         return;
                     }
 
                     if (listener != null) {
-                        listener.onFoundDevice(device, rssi);
+                        listener.onFoundDevice(fioTBluetoothDevice, rssi);
                     }
                 }
             }
@@ -164,8 +168,8 @@ public class FioTScanManager {
 
     private boolean exist(BluetoothDevice device) {
         try {
-            for (BLEDevice d : list) {
-                if (d.device.getAddress().equalsIgnoreCase(device.getAddress())) {
+            for (FioTBluetoothDevice d : list) {
+                if (d.getBluetoothDevice().getAddress().equalsIgnoreCase(device.getAddress())) {
                     return true;
                 }
             }
@@ -174,16 +178,6 @@ public class FioTScanManager {
         }
 
         return false;
-    }
-
-    class BLEDevice {
-        BluetoothDevice device;
-        int rssi;
-
-        public BLEDevice(int rssi, BluetoothDevice device) {
-            this.rssi = rssi;
-            this.device = device;
-        }
     }
 
 }

@@ -15,6 +15,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.bluetooth.le.FioTBluetoothCharacteristic;
+import com.bluetooth.le.FioTBluetoothDevice;
 import com.bluetooth.le.FioTBluetoothService;
 import com.bluetooth.le.FioTManager;
 import com.bluetooth.le.FioTScanManager;
@@ -34,29 +35,16 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
     private TextView txtNod;
     private static TextView txvS;
     private DevicesAdapter dAdapter;
-    public static List<BLEDevice> devicesList = new ArrayList<>();
+    public static List<FioTBluetoothDevice> devicesList = new ArrayList<>();
     private FioTScanManager scanManager;
     private FioTManager manager;
 
-    public static final String MOTIONBAND_SERVICE = "FF007AA9-18E9-11E7-93AE-92361F002671";
-    public static final String REQUEST_CHARAC = "FF017AA9-18E9-11E7-93AE-92361F002671";
-    public static final String RESPONE_CHARAC = "FF027AA9-18E9-11E7-93AE-92361F002671";
-    public static final String INDICATION_CHARAC = "FF037AA9-18E9-11E7-93AE-92361F002671";
-    public static final String DATA_1_CHARAC = "FF047AA9-18E9-11E7-93AE-92361F002671";
-    public static final String DATA_2_CHARAC = "FF057AA9-18E9-11E7-93AE-92361F002671";
-    public static final String DATA_3_CHARAC = "FF067AA9-18E9-11E7-93AE-92361F002671";
-    public static final String DATA_4_CHARAC = "FF077AA9-18E9-11E7-93AE-92361F002671";
-    public static final String ACK_CHARAC = "FF087AA9-18E9-11E7-93AE-92361F002671";
-
-    public static final String SETMODE_HWSELFTEST = "SetMode HWSelfTest";
-    public static final String SETMODE_IDLE       = "SetMode Idle";
-    public static final String SETMODE_COUNTER     = "SetMode Counter";
-    public static final String SETMODE_ACQUIRESENS = "SetMode AcquireSens";
-    public static final String SETMODE_CALIBSENS   = "SetMode CalibSens";
-    public static final String SETMODE_DOWNLOADFW   = "SetMode DownloadFW";
-
-    public static final String GETMODE             = "GetMode";
-    public static final String GETCOUNT            = "GetCount";
+    public static final String SERVICE_UUID = "00001811-0000-1000-8000-00805f9b34fb";
+    public static final String CH44_UUID = "00002a44-0000-1000-8000-00805f9b34fb";
+    public static final String CH45_UUID = "00002a45-0000-1000-8000-00805f9b34fb";
+    public static final String CH46_UUID = "00002a46-0000-1000-8000-00805f9b34fb";
+    public static final String CH47_UUID = "00002a47-0000-1000-8000-00805f9b34fb";
+    public static final String CH48_UUID = "00002a48-0000-1000-8000-00805f9b34fb";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -124,13 +112,16 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
     private void startScan() {
         devicesList.clear();
         try {
-            scanManager.start("", true, FioTScanManager.ScanMode.CONTINUOUS,
-                    null, new FioTScanManager.ScanManagerListener() {
+            scanManager.start("", true, FioTScanManager.ScanMode.CONTINUOUS, null, new FioTScanManager.ScanManagerListener() {
                 @Override
-                public void onFoundDevice(BluetoothDevice device, int rssi) {
-                    Log.i(TAG, "onFoundDevice: " + device.getName());
-                    devicesList.add(new BLEDevice(device, rssi));
-                    showDevices(devicesList);
+                public void onFoundDevice(final FioTBluetoothDevice device, int rssi) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            devicesList.add(device);
+                            dAdapter.notifyDataSetChanged();
+                        }
+                    });
                 }
             });
         } catch (BluetoothOffException e) {
@@ -171,7 +162,7 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
     public class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.MyViewHolder> {
 
 
-        private List<BLEDevice> devicesList;
+        private List<FioTBluetoothDevice> devicesList;
 
         public class MyViewHolder extends RecyclerView.ViewHolder {
             public TextView name, mac;
@@ -192,21 +183,20 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
                     @Override
                     public void onClick(View view) {
                         Log.i(TAG, "onClick: " + (int) view1.getTag());
+                        scanManager.stop();
+                        scanManager.end();
 
                         ArrayList<FioTBluetoothService> services = new ArrayList<FioTBluetoothService>();
                         ArrayList<FioTBluetoothCharacteristic> characteristics2 = new ArrayList<FioTBluetoothCharacteristic>();
-                        characteristics2.add(new FioTBluetoothCharacteristic(REQUEST_CHARAC, false));
-                        characteristics2.add(new FioTBluetoothCharacteristic(RESPONE_CHARAC, true));
-                        characteristics2.add(new FioTBluetoothCharacteristic(INDICATION_CHARAC, true));
-                        characteristics2.add(new FioTBluetoothCharacteristic(DATA_1_CHARAC, true));
-                        characteristics2.add(new FioTBluetoothCharacteristic(DATA_2_CHARAC, true));
-                        characteristics2.add(new FioTBluetoothCharacteristic(DATA_3_CHARAC, true));
-                        characteristics2.add(new FioTBluetoothCharacteristic(DATA_4_CHARAC, true));
-                        characteristics2.add(new FioTBluetoothCharacteristic(ACK_CHARAC, false));
-                        services.add(new FioTBluetoothService(MOTIONBAND_SERVICE, characteristics2));
+                        characteristics2.add(new FioTBluetoothCharacteristic(CH44_UUID, false));
+                        characteristics2.add(new FioTBluetoothCharacteristic(CH45_UUID, true));
+                        characteristics2.add(new FioTBluetoothCharacteristic(CH46_UUID, true));
+                        characteristics2.add(new FioTBluetoothCharacteristic(CH47_UUID, false));
+                        characteristics2.add(new FioTBluetoothCharacteristic(CH48_UUID, false));
+                        services.add(new FioTBluetoothService(SERVICE_UUID, characteristics2));
 
                         manager = new FioTManager(MainActivity.this,
-                                devicesList.get((int) view1.getTag()).device,
+                                devicesList.get((int) view1.getTag()),
                                 services);
                         manager.connect();
 
@@ -220,7 +210,7 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
                             @Override
                             public void onConnected() {
                                 try {
-                                    manager.write(REQUEST_CHARAC, SETMODE_CALIBSENS.getBytes());
+                                    manager.writeWithQueue(CH44_UUID, "HELLO WORLD!".getBytes());
                                 } catch (CharacteristicNotFound characteristicNotFound) {
                                     characteristicNotFound.printStackTrace();
                                 }
@@ -248,15 +238,6 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
 
                             }
 
-                            @Override
-                            public void onBluetoothOff() {
-                                Log.d(TAG, "onBluetoothOff: ");
-                            }
-
-                            @Override
-                            public void onBluetoothOn() {
-                                Log.d(TAG, "onBluetoothOn: ");
-                            }
                         });
 
                     }
@@ -266,7 +247,7 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
         }
 
 
-        public DevicesAdapter(List<BLEDevice> devicesList) {
+        public DevicesAdapter(List<FioTBluetoothDevice> devicesList) {
             this.devicesList = devicesList;
         }
 
@@ -280,15 +261,10 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
 
         @Override
         public void onBindViewHolder(MyViewHolder holder, int position) {
-            BLEDevice device = devicesList.get(position);
-            holder.name.setText(device.device.getName());
-            holder.mac.setText(device.device.getAddress());
-            holder.rssi.setText(device.rssi + "");
+            FioTBluetoothDevice device = devicesList.get(position);
+            holder.name.setText(device.getBluetoothDevice().getName());
+            holder.mac.setText(device.getBluetoothDevice().getAddress());
             holder.view1.setTag(position);
-
-            Log.i(TAG, "onBindViewHolder: " + device.device.getAddress() +
-                    ", " + device.device.getName() +
-            ", " + device.rssi);
         }
 
         @Override

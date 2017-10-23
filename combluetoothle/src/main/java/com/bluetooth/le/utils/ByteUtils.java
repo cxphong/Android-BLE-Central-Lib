@@ -1,10 +1,16 @@
 package com.bluetooth.le.utils;
 
+import android.util.Log;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+
+import static android.R.attr.end;
+import static android.R.attr.x;
+import static android.R.attr.y;
 
 /**
  * Created by caoxuanphong on    4/28/16.
@@ -14,15 +20,15 @@ public class ByteUtils {
 
     /**
      * Create byte array from list of integer
-     *
+     * <p>
      * Ex: ByteUtils.createByteArray(1,2,3,4,5,100, 500);
      * Result: [0x1, 0x2, 0x3, 0x4, 0x5, 0x64, 0xf4]
      *
      * @param numbers
      * @return
      */
-    public static byte[] createByteArray(int ...numbers) {
-        byte [] array = new byte[numbers.length];
+    public static byte[] createByteArray(int... numbers) {
+        byte[] array = new byte[numbers.length];
 
         for (int i = 0; i < numbers.length; i++) {
             array[i] = (byte) numbers[i];
@@ -33,6 +39,7 @@ public class ByteUtils {
 
     /**
      * Convert a String into byte array
+     *
      * @param string
      * @return
      */
@@ -42,6 +49,7 @@ public class ByteUtils {
 
     /**
      * Convert interger into byte array
+     *
      * @param number
      * @param order
      * @return
@@ -54,6 +62,7 @@ public class ByteUtils {
 
     /**
      * Convert long into byte array
+     *
      * @param number
      * @param order
      * @return
@@ -66,6 +75,7 @@ public class ByteUtils {
 
     /**
      * Convert short into byte array
+     *
      * @param number
      * @param order
      * @return
@@ -78,6 +88,7 @@ public class ByteUtils {
 
     /**
      * Convert float into byte array
+     *
      * @param number
      * @param order
      * @return
@@ -90,6 +101,7 @@ public class ByteUtils {
 
     /**
      * Convert double into byte array
+     *
      * @param number
      * @param order
      * @return
@@ -102,6 +114,7 @@ public class ByteUtils {
 
     /**
      * Convert byte array into float
+     *
      * @param b
      * @param order
      * @return
@@ -112,6 +125,7 @@ public class ByteUtils {
 
     /**
      * Convert byte array into integer
+     *
      * @param b
      * @param order
      * @return
@@ -122,6 +136,7 @@ public class ByteUtils {
 
     /**
      * Convert  byte array into long
+     *
      * @param b
      * @param order
      * @return
@@ -148,6 +163,7 @@ public class ByteUtils {
 
     /**
      * Concatenate 2 byte array into new byte array
+     *
      * @param a
      * @param b
      * @return
@@ -166,6 +182,7 @@ public class ByteUtils {
 
     /**
      * Add 1 byte into the end of byte array
+     *
      * @param a
      * @param b
      * @return
@@ -173,7 +190,7 @@ public class ByteUtils {
     public static byte[] addByte(byte[] a, byte b) {
         byte[] c;
         if (a == null) {
-            return new byte[] {b};
+            return new byte[]{b};
         } else {
             c = new byte[a.length + 1];
         }
@@ -191,6 +208,7 @@ public class ByteUtils {
 
     /**
      * Merge 2 byte array
+     *
      * @param src
      * @param bytes
      * @param startPos
@@ -207,6 +225,7 @@ public class ByteUtils {
 
     /**
      * Get sub of array
+     *
      * @param src
      * @param startPos
      * @param num
@@ -225,11 +244,13 @@ public class ByteUtils {
             endPos = startPos + num;
         }
 
-        return Arrays.copyOfRange(src, startPos, endPos );
+        return Arrays.copyOfRange(src, startPos, endPos);
     }
+
 
     /**
      * Append array to an array
+     *
      * @param src
      * @param bytes
      * @param startPos
@@ -243,9 +264,10 @@ public class ByteUtils {
 
         return src;
     }
-    
+
     /**
      * Convert byte array into string array of hex
+     *
      * @param a
      * @return
      */
@@ -253,7 +275,7 @@ public class ByteUtils {
         if (a == null) return null;
 
         String[] s = new String[a.length];
-        for (int  i = 0; i < a.length; i++) {
+        for (int i = 0; i < a.length; i++) {
             s[i] = "0x" + Integer.toHexString((a[i] & 0xff));
         }
 
@@ -268,6 +290,7 @@ public class ByteUtils {
 
     /**
      * Compare 2 byte array contain same data
+     *
      * @param b1
      * @param b2
      * @return
@@ -280,16 +303,17 @@ public class ByteUtils {
         if (b1 == b2) return true;
 
         if (b1.length != b2.length) return false;
-        
+
         for (int i = 0; i < b1.length; i++) {
             if (b1[i] != b2[i]) return false;
         }
-        
+
         return true;
     }
 
     /**
      * Check @child byte array is contain in @src byte array
+     *
      * @param src
      * @param child
      * @return
@@ -301,7 +325,7 @@ public class ByteUtils {
         if (src == child) return true;
 
         if (child.length > src.length) {
-          return false;
+            return false;
         } else if (child.length == src.length) {
             for (int i = 0; i < src.length; i++) {
                 if (src[i] != child[i]) {
