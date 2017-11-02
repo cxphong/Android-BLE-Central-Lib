@@ -36,7 +36,7 @@ import java.util.UUID;
  * <p>
  * 2> Scan nearby device
  * + Listen BluetoothLEScanListener callback
- * + call startScanning() to start scan
+ * + call startScanning() to startWithNameFilter scan
  * + call stopScanning() to stop scan
  * <p>
  * 3> Connect to nearby device
@@ -590,7 +590,7 @@ public class FioTBluetoothLE {
         @Override
         public void onLeScan(final BluetoothDevice device, final int rssi, final byte[] scanRecord) {
             if (mBluetoothLEScanListener != null) {
-                mBluetoothLEScanListener.onFoundDevice(device, rssi);
+                mBluetoothLEScanListener.onFoundDevice(device, rssi, scanRecord);
             }
         }
     };
@@ -766,7 +766,7 @@ public class FioTBluetoothLE {
     }
 
     public interface BluetoothLEScanListener {
-        void onFoundDevice(BluetoothDevice device, final int rssi);
+        void onFoundDevice(BluetoothDevice device, final int rssi, byte[] scanRecord);
     }
 
     public interface BluetoothLEListener {

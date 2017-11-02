@@ -168,34 +168,6 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
     }
 
     /**
-     * Scan device then connect to it
-     */
-    public void reConnect() throws BluetoothOffException {
-        scanManager = new FioTScanManager(mContext);
-        scanManager.start("", true, FioTScanManager.ScanMode.LOW_BATTERY, null, new FioTScanManager.ScanManagerListener() {
-            @Override
-            public void onFoundDevice(FioTBluetoothDevice device, int rssi) {
-                if (device.getBluetoothDevice().getAddress().equalsIgnoreCase(FioTManager.this.device.getAddress()) ||
-                        device.getBluetoothDevice().getName().equalsIgnoreCase(FioTManager.this.device.getName())) {
-                    Log.i(TAG, "onFoundDevice: " + name);
-
-                    if (status == disconnected) {
-                        status = connecting;
-                        scanManager.stop();
-                        scanManager.end();
-
-                        initLE();
-                        ble.connect(getDevice().getAddress());
-                        connect();
-                    } else {
-                        Log.i(TAG, "connect: already connected or connecting");
-                    }
-                }
-            }
-        });
-    }
-
-    /**
      * Write data to characteristic with any size
      * If size > DATA_CHUNK, it is cut into small chunks
      */

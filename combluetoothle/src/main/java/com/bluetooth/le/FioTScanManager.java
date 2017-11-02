@@ -11,7 +11,7 @@ import com.bluetooth.le.exception.BluetoothOffException;
 import java.util.ArrayList;
 import java.util.UUID;
 
-import static com.bluetooth.le.FioTScanManager.ScanMode.CONTINUOUS;
+import static com.bluetooth.le.FioTScanManager.ScanMode.FAST;
 import static com.bluetooth.le.FioTScanManager.ScanMode.LOW_BATTERY;
 
 /**
@@ -21,24 +21,23 @@ public class FioTScanManager {
     private static final String TAG = "FioTScanManager";
     private static final int DURATION_IN_LOW_BATTERY = 30000;
     private static final int SLEEP_TIME_IN_LOW_BATTERY = 30000;
-    private String filter = "";
+    private String nameFilter = "";
     private ScanManagerListener listener;
     private FioTBluetoothLE ble;
-    private volatile boolean ignoreExist;
+    private volatile boolean ignoreDuplicate;
     private ArrayList<FioTBluetoothDevice> list = new ArrayList<>();
     private Handler handler1;
     private Handler handler2;
 
     public enum ScanMode {
         LOW_BATTERY,
-        CONTINUOUS,
+        FAST,
     }
 
-    private ScanMode scanMode = CONTINUOUS;
+    private ScanMode scanMode = FAST;
 
     public interface ScanManagerListener {
-        void onFoundDevice(FioTBluetoothDevice device,
-                           final int rssi);
+        void onFoundDevice(FioTBluetoothDevice device, final int rssi, byte[] scanRecord);
     }
 
     public FioTScanManager(Context context) {
@@ -48,31 +47,29 @@ public class FioTScanManager {
     /**
      * Start scan ble
      *
-     * @param filter
-     * @param ignoreExist
+     * @param uuid
+     * @param ignoreDuplicate
      * @param scanMode
-     * @param servicesUUID
+     * @param
      * @param listener
      */
-    public void start(final String filter,
-                      final boolean ignoreExist,
-                      final ScanMode scanMode,
-                      final UUID[] servicesUUID,
-                      final ScanManagerListener listener) throws BluetoothOffException {
+    public void startWithUUIDFilter(final UUID[] uuid,
+                                    final boolean ignoreDuplicate,
+                                    final ScanMode scanMode,
+                                    final ScanManagerListener listener) throws BluetoothOffException {
         this.scanMode = scanMode;
-        this.filter = filter;
-        this.ignoreExist = ignoreExist;
+        this.ignoreDuplicate = ignoreDuplicate;
         this.listener = listener;
-        ble.setBluetoothLEScanListener(scanListener);
+        ble.setBluetoothLEScanListener(scanUUIDFilterListener);
 
-        ble.startScanning(servicesUUID);
+        ble.startScanning(uuid);
 
         if (scanMode == LOW_BATTERY) {
             if (Looper.myLooper() == null) {
                 Looper.prepare();
                 Looper.loop();
             } else {
-                Log.d(TAG, "start: loop is already ok");
+                Log.d(TAG, "startWithNameFilter: loop is already ok");
             }
 
             handler1 = new Handler();
@@ -86,10 +83,63 @@ public class FioTScanManager {
                         @Override
                         public void run() {
                             try {
-                                start(filter,
-                                        ignoreExist,
+                                startWithUUIDFilter(uuid,
+                                        ignoreDuplicate,
                                         scanMode,
-                                        servicesUUID,
+                                        listener);
+                            } catch (BluetoothOffException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }, SLEEP_TIME_IN_LOW_BATTERY);
+                }
+            }, DURATION_IN_LOW_BATTERY);
+        }
+    }
+
+    /**
+     * Start scan ble
+     *
+     * @param nameFilter
+     * @param ignoreDuplicate
+     * @param scanMode
+     * @param
+     * @param listener
+     */
+    public void startWithNameFilter(final String nameFilter,
+                                    final boolean ignoreDuplicate,
+                                    final ScanMode scanMode,
+                                    final ScanManagerListener listener) throws BluetoothOffException {
+        this.scanMode = scanMode;
+        this.nameFilter = nameFilter;
+        this.ignoreDuplicate = ignoreDuplicate;
+        this.listener = listener;
+        ble.setBluetoothLEScanListener(scanNameFilterListener);
+
+        ble.startScanning(null);
+
+        if (scanMode == LOW_BATTERY) {
+            if (Looper.myLooper() == null) {
+                Looper.prepare();
+                Looper.loop();
+            } else {
+                Log.d(TAG, "startWithNameFilter: loop is already ok");
+            }
+
+            handler1 = new Handler();
+            handler1.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    ble.stopScanning();
+
+                    handler2 = new Handler();
+                    handler2.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                startWithNameFilter(nameFilter,
+                                        ignoreDuplicate,
+                                        scanMode,
                                         listener);
                             } catch (BluetoothOffException e) {
                                 e.printStackTrace();
@@ -141,26 +191,61 @@ public class FioTScanManager {
         }
     }
 
-    FioTBluetoothLE.BluetoothLEScanListener scanListener = new FioTBluetoothLE.BluetoothLEScanListener() {
+    FioTBluetoothLE.BluetoothLEScanListener scanNameFilterListener = new FioTBluetoothLE.BluetoothLEScanListener() {
         @Override
-        public void onFoundDevice(BluetoothDevice device, int rssi) {
+        public void onFoundDevice(BluetoothDevice device, int rssi, byte[] scanRecord) {
             synchronized (this) {
-                if (device.getName() == null) return;
-
                 Log.i(TAG, "onFoundDevice: " + this);
 
-                FioTBluetoothDevice fioTBluetoothDevice = null;
-                if (device.getName().contains(filter)) {
-                    if (!exist(device)) {
-                        fioTBluetoothDevice = new FioTBluetoothDevice(device, null);
-                        list.add(fioTBluetoothDevice);
-                    } else if (ignoreExist) {
+                if (device == null) {
+                    return;
+                }
+
+                if (nameFilter != null && nameFilter.length() > 0) {// Has filter name
+                    if (device.getName() == null || device.getName().length() == 0) {
                         return;
                     }
+                }
 
-                    if (listener != null) {
-                        listener.onFoundDevice(fioTBluetoothDevice, rssi);
+                FioTBluetoothDevice fioTBluetoothDevice = new FioTBluetoothDevice(device, null);
+
+                if (ignoreDuplicate) {
+                    if (!exist(device)) {
+                        list.add(fioTBluetoothDevice);
+                    } else {
+                        return;
                     }
+                }
+
+                if (listener != null) {
+                    listener.onFoundDevice(fioTBluetoothDevice, rssi, scanRecord);
+                }
+            }
+        }
+    };
+
+    FioTBluetoothLE.BluetoothLEScanListener scanUUIDFilterListener = new FioTBluetoothLE.BluetoothLEScanListener() {
+        @Override
+        public void onFoundDevice(BluetoothDevice device, int rssi, byte[] scanRecord) {
+            synchronized (this) {
+                Log.i(TAG, "onFoundDevice: " + this);
+
+                if (device == null) {
+                    return;
+                }
+
+                FioTBluetoothDevice fioTBluetoothDevice = new FioTBluetoothDevice(device, null);
+
+                if (ignoreDuplicate) {
+                    if (!exist(device)) {
+                        list.add(fioTBluetoothDevice);
+                    } else {
+                        return;
+                    }
+                }
+
+                if (listener != null) {
+                    listener.onFoundDevice(fioTBluetoothDevice, rssi, scanRecord);
                 }
             }
         }

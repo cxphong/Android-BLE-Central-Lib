@@ -1,0 +1,29 @@
+@startuml
+
+state Found {
+
+}
+
+state HaveFilter {
+
+}
+
+state Exist {
+
+}
+
+state Reject {
+
+}
+
+Found --> HaveFilter
+HaveFilter --> Reject: name is null
+HaveFilter --> Exist: name # null
+
+Exist --> Callback: First meet/ignoreExist = false
+Exist --> Reject: already met
+
+Found --> NoFilter
+NoFilter --> Exist
+
+@enduml
