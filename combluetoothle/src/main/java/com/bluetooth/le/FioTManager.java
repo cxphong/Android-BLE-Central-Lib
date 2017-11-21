@@ -172,7 +172,7 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
      * If size > DATA_CHUNK, it is cut into small chunks
      */
     public boolean writeWithQueue(String characUUID, byte[] data) throws CharacteristicNotFound {
-        if (data == null || characUUID == null) return true;
+        if (data == null || characUUID == null || ble == null) return true;
 
         FioTBluetoothCharacteristic ch = getCharacteristic(characUUID);
 
@@ -209,7 +209,7 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
     }
 
     public void writeWithoutQueue(String characUUID, byte[] data) throws CharacteristicNotFound {
-        if (data == null || characUUID == null) return;
+        if (data == null || characUUID == null || ble == null) return;
 
         FioTBluetoothCharacteristic ch = getCharacteristic(characUUID);
 
