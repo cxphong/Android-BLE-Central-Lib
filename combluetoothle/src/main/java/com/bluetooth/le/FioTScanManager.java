@@ -195,14 +195,16 @@ public class FioTScanManager {
         @Override
         public void onFoundDevice(BluetoothDevice device, int rssi, byte[] scanRecord) {
             synchronized (this) {
-                Log.i(TAG, "onFoundDevice: " + this);
+                Log.i(TAG, "onFoundDevice: " + device.getAddress() + ", " + device.getName());
 
                 if (device == null) {
                     return;
                 }
 
                 if (nameFilter != null && nameFilter.length() > 0) {// Has filter name
-                    if (device.getName() == null || device.getName().length() == 0) {
+                    if (device.getName() == null ||
+                            device.getName().length() == 0 ||
+                            !device.getName().contains(nameFilter) ) {
                         return;
                     }
                 }
@@ -260,6 +262,7 @@ public class FioTScanManager {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            return false;
         }
 
         return false;
