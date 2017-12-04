@@ -114,6 +114,7 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
     public void end() {
         Log.i(TAG, "Connect manager end");
         status = disconnected;
+        services.clear();
 
         if (bluetoothState != null) {
             bluetoothState.stopListener(mContext);
