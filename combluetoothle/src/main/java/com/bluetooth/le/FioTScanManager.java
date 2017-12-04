@@ -166,11 +166,16 @@ public class FioTScanManager {
             }
         }
 
-        ble.setBluetoothLEScanListener(null);
-        ble.stopScanning();
-        list.clear();
-        ble.end();
-        ble = null;
+        if (list != null) {
+            list.clear();
+        }
+
+        if (ble != null) {
+            ble.setBluetoothLEScanListener(null);
+            ble.stopScanning();
+            ble.end();
+            ble = null;
+        }
     }
 
     public void removeDevice(String mac) {
