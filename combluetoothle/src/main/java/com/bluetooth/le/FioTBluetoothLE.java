@@ -50,7 +50,6 @@ import java.util.UUID;
  */
 public class FioTBluetoothLE {
     private static final String TAG = "FioTBluetoothLE";
-    public static final int ENABLE_BLUETOOTH_REQUEST_CODE = 123;
     private static FioTBluetoothLE instance;
     private BluetoothLEListener mBluetoothLEListener;
     private BluetoothLEScanListener mBluetoothLEScanListener;
@@ -63,7 +62,6 @@ public class FioTBluetoothLE {
     private BluetoothGatt mBluetoothGatt;
     private List<FioTBluetoothService> mWorkingBluetoothService = new ArrayList<>();
     private Queue<FioTBluetoothCharacteristic> mEnableNotifyQueue = new LinkedList<>();
-    private Queue<byte[]> mDataToWriteQueue = new LinkedList<byte[]>();
     private ArrayList<BluetoothGattCharacteristic> mListCharacteristic = new ArrayList<BluetoothGattCharacteristic>();
 
     public static final int CONNECT_SUCCESS = 1;
@@ -131,10 +129,15 @@ public class FioTBluetoothLE {
             mBleCallback = null;
             mBluetoothGatt = null;
             mBluetoothLEListener = null;
+            mBluetoothLEScanListener = null;
             writeTimer.cancel();
             readTimer.cancel();
+            mWorkingBluetoothService.clear();
+            mEnableNotifyQueue.clear();
+            mListCharacteristic.clear();
+            compareCharacteristics = null;
         } catch (Exception e) {
-
+            e.printStackTrace();
         }
     }
 

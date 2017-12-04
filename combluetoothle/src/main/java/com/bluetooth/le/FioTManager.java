@@ -47,9 +47,7 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
     private FioTConnectManagerListener listener;
     private Context mContext;
     private Timer connectTimeout;
-    private FioTScanManager scanManager;
     private Status status;
-    private FiotBluetoothAdapterState bluetoothState;
 
     /**
      * State callback
@@ -72,9 +70,7 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
         this.mContext = context;
         this.device = device.getBluetoothDevice();
         this.services = services;
-
         status = disconnected;
-
         initLE();
     }
 
@@ -100,10 +96,6 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
         return ble;
     }
 
-    public FioTScanManager getScanManager() {
-        return scanManager;
-    }
-
     public Status getStatus() {
         return status;
     }
@@ -115,9 +107,10 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
         Log.i(TAG, "Connect manager end");
         status = disconnected;
         services.clear();
+        device = null;
 
-        if (bluetoothState != null) {
-            bluetoothState.stopListener(mContext);
+        if (connectTimeout != null) {
+            connectTimeout.cancel();
         }
 
         if (ble != null) {

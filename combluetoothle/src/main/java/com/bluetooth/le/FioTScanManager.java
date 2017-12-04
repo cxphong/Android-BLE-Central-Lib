@@ -169,12 +169,8 @@ public class FioTScanManager {
         ble.setBluetoothLEScanListener(null);
         ble.stopScanning();
         list.clear();
-    }
-
-    public void end() {
-        Log.i(TAG, "Scan manager end");
         ble.end();
-        list.clear();
+        ble = null;
     }
 
     public void removeDevice(String mac) {
