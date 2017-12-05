@@ -114,12 +114,7 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
         }
 
         if (ble != null) {
-            ble.disableWrite();
-            ble.stopScanning();
-            ble.closeConnection();
             ble.end();
-            ble.setBluetoothLEListener(null);
-            ble.setBluetoothLEReadListener(null);
             ble = null;
         }
     }

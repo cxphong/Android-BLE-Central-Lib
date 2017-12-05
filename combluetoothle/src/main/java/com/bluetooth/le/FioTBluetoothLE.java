@@ -120,6 +120,14 @@ public class FioTBluetoothLE {
         Log.i(TAG, "end");
 
         try {
+            disableWrite();
+            stopScanning();
+            closeConnection();
+
+            setBluetoothLEScanListener(null);
+            setBluetoothLEListener(null);
+            setBluetoothLEReadListener(null);
+
             mBluetoothAdapter = null;
             mBluetoothManager = null;
             mScanning = false;
@@ -249,10 +257,6 @@ public class FioTBluetoothLE {
      * Disconnect to remote device
      */
     public synchronized void closeConnection() {
-        mIsConnected = false;
-        mWorkingBluetoothService.clear();
-        mListCharacteristic.clear();
-
         if (mBluetoothGatt != null) {
             mBluetoothGatt.disconnect();
             gattClose();

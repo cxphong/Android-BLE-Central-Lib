@@ -203,7 +203,6 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
                     public void onClick(View view) {
                         Log.i(TAG, "onClick: " + (int) view1.getTag());
                         scanManager.stop();
-                        scanManager.end();
 
                         ArrayList<FioTBluetoothService> services = new ArrayList<FioTBluetoothService>();
                         ArrayList<FioTBluetoothCharacteristic> characteristics2 = new ArrayList<FioTBluetoothCharacteristic>();

@@ -172,7 +172,6 @@ public class FioTScanManager {
 
         if (ble != null) {
             ble.setBluetoothLEScanListener(null);
-            ble.stopScanning();
             ble.end();
             ble = null;
         }
