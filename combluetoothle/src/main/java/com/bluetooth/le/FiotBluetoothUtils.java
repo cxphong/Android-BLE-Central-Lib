@@ -69,7 +69,10 @@ public class FiotBluetoothUtils {
      */
     public static void enableBluetooth(Context context) {
         Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-        ((Activity) context).startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+
+        if (context instanceof Activity) {
+            ((Activity) context).startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+        }
     }
 
     /*
