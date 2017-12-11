@@ -264,7 +264,6 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
             }
         }
 
-
         public DevicesAdapter(List<FioTBluetoothDevice> devicesList) {
             this.devicesList = devicesList;
         }

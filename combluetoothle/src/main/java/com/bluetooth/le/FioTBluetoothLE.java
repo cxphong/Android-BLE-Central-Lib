@@ -688,7 +688,7 @@ public class FioTBluetoothLE {
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt,
                                             BluetoothGattCharacteristic characteristic) {
-            if (mBluetoothLEListener != null) {
+            if (mBluetoothLEListener != null && characteristic.getValue().length > 0) {
                 mBluetoothLEListener.onReceiveData(gatt,
                         characteristic,
                         characteristic.getValue());
@@ -731,7 +731,11 @@ public class FioTBluetoothLE {
                 timer.schedule(new TimerTask() {
                     @Override
                     public void run() {
-                        setNotificationForCharacteristic(mEnableNotifyQueue.element());
+                        try {
+                            setNotificationForCharacteristic(mEnableNotifyQueue.element());
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
                 }, 500);
             } else {
