@@ -52,7 +52,6 @@ public class FioTBluetoothLE {
     private static final String TAG = "FioTBluetoothLE";
     private static FioTBluetoothLE instance;
     private BluetoothLEListener mBluetoothLEListener;
-    private BluetoothLEScanListener mBluetoothLEScanListener;
     private Context mContext;
     private volatile boolean mIsConnected;
     private volatile boolean mScanning;
@@ -121,10 +120,7 @@ public class FioTBluetoothLE {
 
         try {
             disableWrite();
-            stopScanning();
             closeConnection();
-
-            setBluetoothLEScanListener(null);
             setBluetoothLEListener(null);
             setBluetoothLEReadListener(null);
 
@@ -137,7 +133,6 @@ public class FioTBluetoothLE {
             mBleCallback = null;
             mBluetoothGatt = null;
             mBluetoothLEListener = null;
-            mBluetoothLEScanListener = null;
             writeTimer.cancel();
             readTimer.cancel();
             mWorkingBluetoothService.clear();
@@ -159,37 +154,6 @@ public class FioTBluetoothLE {
 
     public void setBluetoothLEListener(BluetoothLEListener listener) {
         this.mBluetoothLEListener = listener;
-    }
-
-    public void setBluetoothLEScanListener(BluetoothLEScanListener listener) {
-        this.mBluetoothLEScanListener = listener;
-    }
-
-    /**
-     * Start scan nearby bluetooth device
-     * Founded device will be in @onLeScan()
-     */
-    public synchronized void startScanning(UUID[] servicesUUID) throws BluetoothOffException {
-        if (mScanning) return;
-
-        if (mBluetoothAdapter.getState() != BluetoothAdapter.STATE_ON) {
-            throw new BluetoothOffException(mContext.getString(R.string.bluetooth_not_on));
-        }
-
-        Log.i(TAG, "startScanning");
-        mBluetoothAdapter.startLeScan(servicesUUID, mDeviceFoundCallback);
-        mScanning = true;
-    }
-
-    /**
-     * Stop scanning
-     */
-    public synchronized void stopScanning() {
-        if (!mScanning || (mBluetoothAdapter == null)) return;
-
-        Log.i(TAG, "stopScanning: ");
-        mBluetoothAdapter.stopLeScan(mDeviceFoundCallback);
-        mScanning = false;
     }
 
     private void refresh() {
@@ -590,18 +554,6 @@ public class FioTBluetoothLE {
         }
     }
 
-    /**
-     * Callback when a bluetooth device founded
-     */
-    private BluetoothAdapter.LeScanCallback mDeviceFoundCallback = new BluetoothAdapter.LeScanCallback() {
-        @Override
-        public void onLeScan(final BluetoothDevice device, final int rssi, final byte[] scanRecord) {
-            if (mBluetoothLEScanListener != null) {
-                mBluetoothLEScanListener.onFoundDevice(device, rssi, scanRecord);
-            }
-        }
-    };
-
     private BluetoothGattCallback mBleCallback = new BluetoothGattCallback() {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
@@ -731,11 +683,7 @@ public class FioTBluetoothLE {
                 timer.schedule(new TimerTask() {
                     @Override
                     public void run() {
-                        try {
-                            setNotificationForCharacteristic(mEnableNotifyQueue.element());
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
+                        setNotificationForCharacteristic(mEnableNotifyQueue.element());
                     }
                 }, 500);
             } else {
@@ -774,10 +722,6 @@ public class FioTBluetoothLE {
 
     public interface BluetoothLEReadListener {
         void onRead(BluetoothGattCharacteristic characteristic);
-    }
-
-    public interface BluetoothLEScanListener {
-        void onFoundDevice(BluetoothDevice device, final int rssi, byte[] scanRecord);
     }
 
     public interface BluetoothLEListener {

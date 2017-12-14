@@ -24,6 +24,8 @@ import com.bluetooth.le.exception.BluetoothOffException;
 import com.bluetooth.le.exception.CharacteristicNotFound;
 import com.bluetooth.le.exception.NotFromActivity;
 import com.bluetooth.le.exception.NotSupportBleException;
+import com.bluetooth.le.scanner.ScanFilter;
+import com.bluetooth.le.scanner.ScanResult;
 import com.bluetooth.le.utils.BluetoothUuid;
 import com.bluetooth.le.utils.ByteUtils;
 
@@ -113,27 +115,13 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
 
     private void startScan() {
         devicesList.clear();
-//        try {
-//            scanManager.startWithNameFilter("Gear", true, FioTScanManager.ScanMode.FAST, new FioTScanManager.ScanManagerListener() {
-//                @Override
-//                public void onFoundDevice(final FioTBluetoothDevice device, int rssi, byte[] scanRecord) {
-//                    runOnUiThread(new Runnable() {
-//                        @Override
-//                        public void run() {
-//                            devicesList.add(device);
-//                            dAdapter.notifyDataSetChanged();
-//                        }
-//                    });
-//                }
-//            });
-//        } catch (BluetoothOffException e) {
-//            e.printStackTrace();
-//        }
 
+        List<ScanFilter> filters = new ArrayList<>();
+        filters.add(new ScanFilter.Builder().setDeviceName("SOLAR").build());
         try {
-            scanManager.startWithUUIDFilter(new UUID[]{BluetoothUuid.parseUuidFrom(new byte[]{(byte) 0xf0, (byte) 0xff}).getUuid()}, true, FioTScanManager.ScanMode.FAST, new FioTScanManager.ScanManagerListener() {
+            scanManager.start(filters, null, new FioTScanManager.ScanManagerListener() {
                 @Override
-                public void onFoundDevice(final FioTBluetoothDevice device, int rssi, byte[] scanRecord) {
+                public void onFoundDevice(final FioTBluetoothDevice device, ScanResult result) {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -142,8 +130,13 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
                         }
                     });
                 }
+
+                @Override
+                public void onScanFailed(int errorCode) {
+
+                }
             });
-        } catch (BluetoothOffException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -165,7 +158,7 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
     @Override
     public void completed() {
         Log.i(TAG, "completed: ");
-        scanManager = new FioTScanManager(this);
+        scanManager = new FioTScanManager();
     }
 
     private class BLEDevice {

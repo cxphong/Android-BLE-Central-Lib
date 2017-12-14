@@ -69,10 +69,25 @@ public class FiotBluetoothUtils {
      */
     public static void enableBluetooth(Context context) {
         Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+        ((Activity) context).startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+    }
 
-        if (context instanceof Activity) {
-            ((Activity) context).startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-        }
+    /**
+     * Enable bluetooth if it is disabled by show a dialog
+     */
+    public static void forceEnableBluetooth(Context context) {
+        BluetoothManager bluetoothManager =
+                (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
+        bluetoothManager.getAdapter().enable();
+    }
+
+    /**
+     * Disable bluetooth if it is disabled by show a dialog
+     */
+    public static void disableBluetooth(Context context) {
+        BluetoothManager bluetoothManager =
+                (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
+        bluetoothManager.getAdapter().disable();
     }
 
     /*

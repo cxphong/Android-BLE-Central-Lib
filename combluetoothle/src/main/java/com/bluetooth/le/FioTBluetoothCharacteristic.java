@@ -13,7 +13,7 @@ public class FioTBluetoothCharacteristic {
     private BluetoothGattCharacteristic characteristic;
     private boolean notify;
     private int writeType;
-    private Queue<byte[]> mDataToWriteQueue = new LinkedList<>();
+    private volatile Queue<byte[]> mDataToWriteQueue = new LinkedList<>();
 
     public FioTBluetoothCharacteristic(String uuid, boolean notify) {
         this.uuid = uuid;

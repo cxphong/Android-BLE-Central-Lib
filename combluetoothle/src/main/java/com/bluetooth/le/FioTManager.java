@@ -173,6 +173,10 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
 
         Queue<byte[]> queue = ch.getmDataToWriteQueue();
         boolean isQueueEmpty = (queue.size() == 0);
+        Log.i(TAG, "queue's size " + queue.size() + " - " + ch.getCharacteristic().getUuid().toString());
+        for (byte[] bytes : queue) {
+            Log.i(TAG, "writeWithQueue: " + ByteUtils.toHexString(bytes));
+        }
 
         /* Split data into multiple packet with size equal DATA_CHUNK */
         int index = 0;
@@ -398,16 +402,20 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
 
     @Override
     public void onDidWrite(BluetoothGattCharacteristic cha, int status) {
-        Log.i(TAG, "onDidWrite: " + status);
         FioTBluetoothCharacteristic characteristic = getCharacteristic(cha);
         Queue queue = characteristic.getmDataToWriteQueue();
 
-        if (queue != null && queue.size() > 0) {
-            queue.remove();
+        Log.i(TAG, "onDidWrite: " + status + ", " + queue.size() + " - " +
+                cha.getUuid().toString());
+
+        if (queue.size() > 0) {
+            queue.poll();
             if (characteristic.getmDataToWriteQueue().size() > 0) {
                 ble.writeToCharacteristic(cha, (byte[]) queue.element());
             }
         }
+
+        Log.i(TAG, "onDidWrite: " + status + ", " + queue.size());
     }
 
     @Override
