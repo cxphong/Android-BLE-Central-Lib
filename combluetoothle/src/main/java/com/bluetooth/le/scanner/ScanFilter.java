@@ -50,6 +50,7 @@ import java.util.UUID;
  * @see BluetoothLeScannerCompat
  */
 public final class ScanFilter implements Parcelable {
+	private static final String TAG = "ScanFilter";
 
 	@Nullable
 	private final String mDeviceName;
@@ -276,11 +277,11 @@ public final class ScanFilter implements Parcelable {
 	 * if it matches all the field filters.
 	 */
 	public boolean matches(ScanResult scanResult) {
-		Log.d("TAG", "matches: 01");
 		if (scanResult == null) {
 			return false;
 		}
 		BluetoothDevice device = scanResult.getDevice();
+
 		// Device match.
 		if (mDeviceAddress != null
 				&& (device == null || !mDeviceAddress.equals(device.getAddress()))) {
@@ -288,8 +289,6 @@ public final class ScanFilter implements Parcelable {
 		}
 
 		ScanRecord scanRecord = scanResult.getScanRecord();
-
-		Log.d("TAG", "matches: " + scanRecord.getDeviceName() + " - " + mDeviceName);
 
 		// Scan record is null but there exist filters on it.
 		if (scanRecord == null

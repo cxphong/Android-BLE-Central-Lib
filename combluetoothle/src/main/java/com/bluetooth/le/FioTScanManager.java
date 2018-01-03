@@ -47,6 +47,7 @@ public class FioTScanManager {
     public void start(List<ScanFilter> filters,
                       ScanSettings settings,
                       ScanManagerListener listener) {
+        Log.d(TAG, "start: ");
         this.listener = listener;
         scannerCompat = BluetoothLeScannerCompat.getScanner();
 

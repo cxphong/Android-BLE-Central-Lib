@@ -126,7 +126,6 @@ import java.util.Map;
 		@Override
 		public void onScanResult(final int callbackType, final android.bluetooth.le.ScanResult _result) {
 			final ScanCallbackWrapper wrapper = mWrappers2.get(this);
-			Log.d("TAG", "onScanResult: " + wrapper);
 			if (wrapper != null) {
 				final byte[] data = _result.getScanRecord() != null ? _result.getScanRecord().getBytes() : null;
 				final ScanResult result = new ScanResult(_result.getDevice(), ScanRecord.parseFromBytes(data), _result.getRssi(), _result.getTimestampNanos());
@@ -138,7 +137,6 @@ import java.util.Map;
 		@Override
 		public void onBatchScanResults(final List<android.bluetooth.le.ScanResult> _results) {
 			final ScanCallbackWrapper wrapper = mWrappers2.get(this);
-			Log.d("TAG", "onBatchScanResults: ");
 			if (wrapper != null) {
 				// On several phones the onBatchScanResults is called twice for every batch. Skip the second call if came to early.
 				final long now = SystemClock.elapsedRealtime();

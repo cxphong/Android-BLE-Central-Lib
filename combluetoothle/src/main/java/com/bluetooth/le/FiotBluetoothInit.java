@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.bluetooth.le.exception.NotFromActivity;
 import com.bluetooth.le.exception.NotSupportBleException;
@@ -65,6 +66,7 @@ public class FiotBluetoothInit {
 
     private static void checkBluetoothAndEnablePermission() {
         if (!FiotBluetoothUtils.isBluetoothEnabled(context)) {
+            Log.d(TAG, "checkBluetoothAndEnablePermission: ");
             FiotBluetoothUtils.enableBluetooth(context);
         } else {
             if (hasPermission()) {
@@ -89,37 +91,38 @@ public class FiotBluetoothInit {
     static Application.ActivityLifecycleCallbacks activityLifecycleCallbacks = new Application.ActivityLifecycleCallbacks() {
         @Override
         public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-
+            Log.d(TAG, "onActivityCreated: ");
         }
 
         @Override
         public void onActivityStarted(Activity activity) {
-
+            Log.d(TAG, "onActivityStarted: ");
         }
 
         @Override
         public void onActivityResumed(Activity activity) {
+            Log.d(TAG, "onActivityResumed: ");
             checkBluetoothAndEnablePermission();
         }
 
         @Override
         public void onActivityPaused(Activity activity) {
-
+            Log.d(TAG, "onActivityPaused: ");
         }
 
         @Override
         public void onActivityStopped(Activity activity) {
-
+            Log.d(TAG, "onActivityStopped: ");
         }
 
         @Override
         public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-
+            Log.d(TAG, "onActivitySaveInstanceState: ");
         }
 
         @Override
         public void onActivityDestroyed(Activity activity) {
-
+            Log.d(TAG, "onActivityDestroyed: ");
         }
 
     };

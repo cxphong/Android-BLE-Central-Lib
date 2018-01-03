@@ -683,7 +683,11 @@ public class FioTBluetoothLE {
                 timer.schedule(new TimerTask() {
                     @Override
                     public void run() {
-                        setNotificationForCharacteristic(mEnableNotifyQueue.element());
+                        try {
+                            setNotificationForCharacteristic(mEnableNotifyQueue.element());
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
                 }, 500);
             } else {

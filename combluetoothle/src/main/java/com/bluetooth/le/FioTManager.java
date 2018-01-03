@@ -174,9 +174,6 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
         Queue<byte[]> queue = ch.getmDataToWriteQueue();
         boolean isQueueEmpty = (queue.size() == 0);
         Log.i(TAG, "queue's size " + queue.size() + " - " + ch.getCharacteristic().getUuid().toString());
-        for (byte[] bytes : queue) {
-            Log.i(TAG, "writeWithQueue: " + ByteUtils.toHexString(bytes));
-        }
 
         /* Split data into multiple packet with size equal DATA_CHUNK */
         int index = 0;
@@ -192,10 +189,6 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
                     ch.getmDataToWriteQueue().element());
         } else {
             Log.i(TAG, "not writeWithQueue, queue's size " + queue.size());
-
-            for (byte[] bytes : queue) {
-                Log.i(TAG, "writeWithQueue: " + ByteUtils.toHexString(bytes));
-            }
         }
 
         return true;
@@ -335,14 +328,16 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
 
     @Override
     public void onConnectResult(int result, int error) {
-        if (result == FioTBluetoothLE.CONNECT_SUCCESS) {
+        if (status == connecting) {
+            if (result == FioTBluetoothLE.CONNECT_SUCCESS) {
             /* Wait until search services complete */
-            Log.i(TAG, "onConnectResult: success");
-        } else if (result == FioTBluetoothLE.CONNECT_FAIL) {
-            Log.i(TAG, "onConnectResult: fail");
-            if (listener != null) listener.onConnectFail(error);
-            stopConnectTimeout();
-            end();
+                Log.i(TAG, "onConnectResult: success");
+            } else if (result == FioTBluetoothLE.CONNECT_FAIL) {
+                Log.i(TAG, "onConnectResult: fail");
+                if (listener != null) listener.onConnectFail(error);
+                stopConnectTimeout();
+                end();
+            }
         }
     }
 
@@ -383,16 +378,19 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
 
         if (status == connecting) {
             if (listener != null) listener.onConnectFail(0);
-        } else {
+
+            stopConnectTimeout();
+            end();
+        } else  if (status == connected) {
             status = disconnected;
 
             ble.disableWrite();
 
             if (listener != null) listener.onDisconnected(this);
-        }
 
-        stopConnectTimeout();
-        end();
+            stopConnectTimeout();
+            end();
+        }
     }
 
     @Override
