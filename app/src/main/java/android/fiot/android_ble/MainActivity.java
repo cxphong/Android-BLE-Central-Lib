@@ -43,12 +43,10 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
     private FioTScanManager scanManager;
     private FioTManager manager;
 
-    public static final String SERVICE_UUID = "00001811-0000-1000-8000-00805f9b34fb";
-    public static final String CH44_UUID = "00002a44-0000-1000-8000-00805f9b34fb";
-    public static final String CH45_UUID = "00002a45-0000-1000-8000-00805f9b34fb";
-    public static final String CH46_UUID = "00002a46-0000-1000-8000-00805f9b34fb";
-    public static final String CH47_UUID = "00002a47-0000-1000-8000-00805f9b34fb";
-    public static final String CH48_UUID = "00002a48-0000-1000-8000-00805f9b34fb";
+    public static final String SERVICE_UUID = "0000180d-0000-1000-8000-00805f9b34fb";
+    public static final String CH1_UUID = "00002a37-0000-1000-8000-00805f9b34fb";
+    public static final String CH2_UUID = "00002a38-0000-1000-8000-00805f9b34fb";
+    public static final String CH3_UUID = "00002a39-0000-1000-8000-00805f9b34fb";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -117,7 +115,7 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
         devicesList.clear();
 
         List<ScanFilter> filters = new ArrayList<>();
-        filters.add(new ScanFilter.Builder().setDeviceName("SOLAR").build());
+        filters.add(new ScanFilter.Builder().setDeviceName("Heart Rate").build());
         try {
             scanManager.start(filters, null, new FioTScanManager.ScanManagerListener() {
                 @Override
@@ -193,17 +191,15 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
                 btnConnect = (Button) view.findViewById(R.id.buttonConnect);
                 btnConnect.setOnClickListener(new View.OnClickListener() {
                     @Override
-                    public void onClick(View view) {
+                    public void onClick(final View view) {
                         Log.i(TAG, "onClick: " + (int) view1.getTag());
                         scanManager.stop();
 
                         ArrayList<FioTBluetoothService> services = new ArrayList<FioTBluetoothService>();
                         ArrayList<FioTBluetoothCharacteristic> characteristics2 = new ArrayList<FioTBluetoothCharacteristic>();
-                        characteristics2.add(new FioTBluetoothCharacteristic(CH44_UUID, false));
-                        characteristics2.add(new FioTBluetoothCharacteristic(CH45_UUID, true));
-                        characteristics2.add(new FioTBluetoothCharacteristic(CH46_UUID, true));
-                        characteristics2.add(new FioTBluetoothCharacteristic(CH47_UUID, false));
-                        characteristics2.add(new FioTBluetoothCharacteristic(CH48_UUID, false));
+                        characteristics2.add(new FioTBluetoothCharacteristic(CH1_UUID, true));
+                        characteristics2.add(new FioTBluetoothCharacteristic(CH2_UUID, false));
+                        characteristics2.add(new FioTBluetoothCharacteristic(CH3_UUID, false));
                         services.add(new FioTBluetoothService(SERVICE_UUID, characteristics2));
 
                         manager = new FioTManager(MainActivity.this,
@@ -221,7 +217,19 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
                             @Override
                             public void onConnected() {
                                 try {
-                                    manager.writeWithQueue(CH44_UUID, "HELLO WORLD!".getBytes());
+                                    for (int i = 0; i < 100; i++) {
+                                        manager.writeWithQueue(CH3_UUID, "HELLO WORLD!".getBytes());
+                                        manager.read(CH2_UUID);
+                                        manager.writeWithQueue(CH3_UUID, "HELLO WORLD! 1".getBytes());
+                                        manager.read(CH2_UUID);
+                                        manager.writeWithQueue(CH3_UUID, "HELLO WORLD! 2".getBytes());
+                                        manager.read(CH2_UUID);
+                                        manager.writeWithQueue(CH3_UUID, "HELLO WORLD! 3".getBytes());
+                                        manager.read(CH2_UUID);
+                                        manager.writeWithQueue(CH3_UUID, "HELLO WORLD! 4".getBytes());
+                                        manager.read(CH2_UUID);
+                                    }
+
                                 } catch (CharacteristicNotFound characteristicNotFound) {
                                     characteristicNotFound.printStackTrace();
                                 }

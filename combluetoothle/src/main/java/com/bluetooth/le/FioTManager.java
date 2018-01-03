@@ -48,6 +48,7 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
     private Context mContext;
     private Timer connectTimeout;
     private Status status;
+    private RequestHandler requestHandler;
 
     /**
      * State callback
@@ -70,6 +71,7 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
         this.mContext = context;
         this.device = device.getBluetoothDevice();
         this.services = services;
+        this.requestHandler = new RequestHandler();
         status = disconnected;
         initLE();
     }
@@ -171,24 +173,16 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
                     characUUID);
         }
 
-        Queue<byte[]> queue = ch.getmDataToWriteQueue();
-        boolean isQueueEmpty = (queue.size() == 0);
-        Log.i(TAG, "queue's size " + queue.size() + " - " + ch.getCharacteristic().getUuid().toString());
-
         /* Split data into multiple packet with size equal DATA_CHUNK */
         int index = 0;
         while (index < data.length) {
             byte[] bytes = ByteUtils.subByteArray(data, index, DATA_CHUNK);
             index += bytes.length;
-            queue.add(bytes);
-        }
 
-        /* If first data */
-        if (isQueueEmpty && ble != null) {
-            ble.writeToCharacteristic(getCharacteristic(characUUID).getCharacteristic(),
-                    ch.getmDataToWriteQueue().element());
-        } else {
-            Log.i(TAG, "not writeWithQueue, queue's size " + queue.size());
+            RequestData requestData = new RequestData(ch.getCharacteristic(), bytes);
+            Request request = new Request(RequestCmd.WRITE, requestData);
+            requestHandler.enqueue(request);
+            requestHandler.implRightNow(ble);
         }
 
         return true;
@@ -247,7 +241,20 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
     }
 
     public void read(String characUuid) {
-        ble.requestCharacteristicValue(getCharacteristic(characUuid).getCharacteristic());
+        BluetoothGattCharacteristic characteristic = getCharacteristic(characUuid).getCharacteristic();
+
+        if (characteristic != null) {
+            if (requestHandler != null) {
+                RequestData requestData = new RequestData(characteristic, null);
+                Request request = new Request(RequestCmd.READ, requestData);
+                requestHandler.enqueue(request);
+                requestHandler.implRightNow(ble);
+            } else {
+                Log.e(TAG, "read: request handler is null");
+            }
+        } else {
+            Log.e(TAG, "read: no exist characteristics");
+        }
     }
 
     public boolean isConnected() {
@@ -321,6 +328,9 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
 
     @Override
     public void onRead(BluetoothGattCharacteristic characteristic) {
+        requestHandler.dequeue();
+        requestHandler.impl(ble);
+
         if (listener != null) {
             listener.onRead(getCharacteristic(characteristic));
         }
@@ -400,20 +410,9 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
 
     @Override
     public void onDidWrite(BluetoothGattCharacteristic cha, int status) {
-        FioTBluetoothCharacteristic characteristic = getCharacteristic(cha);
-        Queue queue = characteristic.getmDataToWriteQueue();
-
-        Log.i(TAG, "onDidWrite: " + status + ", " + queue.size() + " - " +
-                cha.getUuid().toString());
-
-        if (queue.size() > 0) {
-            queue.poll();
-            if (characteristic.getmDataToWriteQueue().size() > 0) {
-                ble.writeToCharacteristic(cha, (byte[]) queue.element());
-            }
-        }
-
-        Log.i(TAG, "onDidWrite: " + status + ", " + queue.size());
+        Log.i(TAG, "onDidWrite: " + status +  " - " + cha.getUuid().toString());
+        requestHandler.dequeue();
+        requestHandler.impl(ble);
     }
 
     @Override
