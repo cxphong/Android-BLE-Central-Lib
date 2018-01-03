@@ -33,11 +33,13 @@ public class RequestHandler {
 
         if (le == null) {
             Log.e(TAG, "impl: le is null");
+            lock.unlock();
             return;
         }
 
         if (requestQueue.size() == 0) {
             Log.d(TAG, "impl: empty request queue");
+            lock.unlock();
             return;
         }
 
