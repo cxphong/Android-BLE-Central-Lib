@@ -241,10 +241,12 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
     }
 
     public void read(String characUuid) {
+        Log.d(TAG, "read: ");
         BluetoothGattCharacteristic characteristic = getCharacteristic(characUuid).getCharacteristic();
 
         if (characteristic != null) {
             if (requestHandler != null) {
+                Log.d(TAG, "read: ");
                 RequestData requestData = new RequestData(characteristic, null);
                 Request request = new Request(RequestCmd.READ, requestData);
                 requestHandler.enqueue(request);

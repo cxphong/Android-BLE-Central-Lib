@@ -430,7 +430,10 @@ public class FioTBluetoothLE {
      * @param ch characteristic that we want to read
      */
     public void requestCharacteristicValue(BluetoothGattCharacteristic ch) {
-        if (mBluetoothAdapter == null || mBluetoothGatt == null) return;
+        if (mBluetoothAdapter == null || mBluetoothGatt == null) {
+            Log.d(TAG, "requestCharacteristicValue: " + mBluetoothAdapter + " - " + mBluetoothGatt);
+            return;
+        }
 
         Log.i(TAG, "requestCharacteristicValue: ");
         mBluetoothGatt.readCharacteristic(ch);

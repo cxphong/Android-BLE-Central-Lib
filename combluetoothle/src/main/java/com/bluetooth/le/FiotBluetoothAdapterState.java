@@ -21,7 +21,7 @@ public class FiotBluetoothAdapterState {
         try {
             this.listener = listener;
             IntentFilter bluetoothFilter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
-            context.registerReceiver(mBluetoothReceiver, bluetoothFilter);
+            context.getApplicationContext().registerReceiver(mBluetoothReceiver, bluetoothFilter);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -30,7 +30,7 @@ public class FiotBluetoothAdapterState {
     public void stopListener(Context context) {
         try {
             listener = null;
-            context.unregisterReceiver(mBluetoothReceiver);
+            context.getApplicationContext().unregisterReceiver(mBluetoothReceiver);
         } catch (Exception e) {
             e.printStackTrace();
         }

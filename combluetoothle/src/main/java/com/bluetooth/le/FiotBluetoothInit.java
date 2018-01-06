@@ -4,11 +4,18 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.bluetooth.le.exception.NotFromActivity;
 import com.bluetooth.le.exception.NotSupportBleException;
 import com.example.com.bluetooth.le.R;
@@ -31,6 +38,7 @@ public class FiotBluetoothInit {
 
     /**
      * Check bluetooth state, ble support and permission
+     *
      * @param c
      * @param l
      * @throws NotSupportBleException
@@ -68,6 +76,25 @@ public class FiotBluetoothInit {
         if (!FiotBluetoothUtils.isBluetoothEnabled(context)) {
             Log.d(TAG, "checkBluetoothAndEnablePermission: ");
             FiotBluetoothUtils.enableBluetooth(context);
+        } else if (!isLocationServiceEnabled()) {
+            new Handler(Looper.getMainLooper()).post(new Runnable() {
+                @Override
+                public void run() {
+                    new MaterialDialog.Builder(context)
+                            .title("Permission")
+                            .content("Please turn on location service")
+                            .positiveText("Turn On")
+                            .cancelable(false)
+                            .onPositive(new MaterialDialog.SingleButtonCallback() {
+                                @Override
+                                public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                    Intent intent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                                    context.startActivity(intent);
+                                }
+                            })
+                            .show();
+                }
+            });
         } else {
             if (hasPermission()) {
                 listener.completed();
@@ -127,5 +154,10 @@ public class FiotBluetoothInit {
 
     };
 
+    public static boolean isLocationServiceEnabled() {
+        LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        return (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
+                locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER));
+    }
 
 }
