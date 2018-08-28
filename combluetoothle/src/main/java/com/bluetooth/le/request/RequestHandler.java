@@ -1,8 +1,9 @@
-package com.bluetooth.le;
+package com.bluetooth.le.request;
 
 import android.util.Log;
 
-import java.util.LinkedList;
+import com.bluetooth.le.FioTBluetoothLE;
+
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.locks.ReentrantLock;

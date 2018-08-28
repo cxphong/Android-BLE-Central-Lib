@@ -1,4 +1,4 @@
-package com.bluetooth.le;
+package com.bluetooth.le.request;
 
 import android.bluetooth.BluetoothGattCharacteristic;
 

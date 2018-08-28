@@ -20,18 +20,15 @@ import com.bluetooth.le.FioTBluetoothService;
 import com.bluetooth.le.FioTManager;
 import com.bluetooth.le.FioTScanManager;
 import com.bluetooth.le.FiotBluetoothInit;
-import com.bluetooth.le.exception.BluetoothOffException;
 import com.bluetooth.le.exception.CharacteristicNotFound;
 import com.bluetooth.le.exception.NotFromActivity;
 import com.bluetooth.le.exception.NotSupportBleException;
 import com.bluetooth.le.scanner.ScanFilter;
 import com.bluetooth.le.scanner.ScanResult;
-import com.bluetooth.le.utils.BluetoothUuid;
 import com.bluetooth.le.utils.ByteUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity implements FiotBluetoothInit.FiotBluetoothInitListener {
     private static final String TAG = "MainActivity";
@@ -207,7 +204,27 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
                                 services);
                         manager.connect();
 
-                        manager.setFioTConnectManagerListener(new FioTManager.FioTConnectManagerListener() {
+                        manager.setDataListener(new FioTManager.FioTManagerDataListener() {
+                            @Override
+                            public void onNotify(FioTBluetoothCharacteristic characteristic) {
+                                Log.i(TAG, "onNotify: " + characteristic.getUuid());
+                                Log.i(TAG, "onNofify: " + ByteUtils.toHexString(characteristic.getCharacteristic().getValue()));
+                            }
+
+                            @Override
+                            public void onRead(FioTBluetoothCharacteristic characteristic) {
+                                Log.i(TAG, "onRead: ");
+                                Log.i(TAG, "onRead: " + ByteUtils.toHexString(characteristic.getCharacteristic().getValue()));
+                                Log.i(TAG, "onRead: " + ByteUtils.toString(characteristic.getCharacteristic().getValue()));
+                            }
+
+                            @Override
+                            public void onReadRSSI(int rssi) {
+
+                            }
+                        });
+
+                        manager.setConnectionListener(new FioTManager.FioTManagerConnectionListener() {
 
                             @Override
                             public void onConnectFail(int error) {
@@ -237,24 +254,6 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
 
                             @Override
                             public void onDisconnected(FioTManager manager) {
-                            }
-
-                            @Override
-                            public void onNotify(FioTBluetoothCharacteristic characteristic) {
-                                Log.i(TAG, "onNotify: " + characteristic.getUuid());
-                                Log.i(TAG, "onNofify: " + ByteUtils.toHexString(characteristic.getCharacteristic().getValue()));
-                            }
-
-                            @Override
-                            public void onRead(FioTBluetoothCharacteristic characteristic) {
-                                Log.i(TAG, "onRead: ");
-                                Log.i(TAG, "onRead: " + ByteUtils.toHexString(characteristic.getCharacteristic().getValue()));
-                                Log.i(TAG, "onRead: " + ByteUtils.toString(characteristic.getCharacteristic().getValue()));
-                            }
-
-                            @Override
-                            public void onReadRSSI(int rssi) {
-
                             }
 
                         });

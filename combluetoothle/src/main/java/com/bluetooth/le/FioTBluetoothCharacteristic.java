@@ -53,7 +53,7 @@ public class FioTBluetoothCharacteristic {
     }
 
     /**
-     * Set writeWithQueue type, must call after ble is in connected state
+     * Set writeWithQueue type, must call after ble is in Connected state
      *
      * @param type
      * BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT

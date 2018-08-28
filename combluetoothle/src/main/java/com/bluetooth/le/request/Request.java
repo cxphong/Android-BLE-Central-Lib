@@ -1,6 +1,4 @@
-package com.bluetooth.le;
-
-import java.util.Queue;
+package com.bluetooth.le.request;
 
 /**
  * Created by caoxuanphong on 1/3/18.

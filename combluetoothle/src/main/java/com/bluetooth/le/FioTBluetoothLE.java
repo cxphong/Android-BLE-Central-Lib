@@ -115,7 +115,7 @@ public class FioTBluetoothLE {
     /**
      * Finalize FioTBluetoothLE instance. Use when closing app.
      */
-    public void end() {
+    protected void end() {
         Log.i(TAG, "end");
 
         try {
@@ -440,7 +440,7 @@ public class FioTBluetoothLE {
     }
 
     /**
-     * Get a characteristic of connected device
+     * Get a characteristic of Connected device
      *
      * @param uuid characteristic uuid
      * @return characteristic, null if not found
@@ -459,7 +459,7 @@ public class FioTBluetoothLE {
     }
 
     /**
-     * Get RSSI of connected device.
+     * Get RSSI of Connected device.
      * Result will be in @onReadRemoteRSSI(int rssi, int status)
      */
     public void readRSSI() {
@@ -702,7 +702,7 @@ public class FioTBluetoothLE {
     };
 
     /**
-     * Discovery service of connected device.
+     * Discovery service of Connected device.
      * Result will be in @onServicesDiscovered() callback
      */
     private void startServicesDiscovery() {
