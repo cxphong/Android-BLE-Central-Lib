@@ -13,7 +13,7 @@ import java.util.*;
 /**
  * Represent "Bluetooth low energy" that using to connect to a bluetooth remote device.
  * <p>
- * How to user:
+ * How to use:
  * 1> Create FioTBluetoothLE instance
  * <p>
  * 2> Scan nearby device
