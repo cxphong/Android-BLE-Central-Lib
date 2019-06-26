@@ -1,32 +1,14 @@
 package com.bluetooth.le;
 
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothGatt;
-import android.bluetooth.BluetoothGattCallback;
-import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattDescriptor;
-import android.bluetooth.BluetoothGattService;
-import android.bluetooth.BluetoothManager;
-import android.bluetooth.BluetoothProfile;
+import android.bluetooth.*;
 import android.content.Context;
 import android.os.Build;
 import android.util.Log;
-
-import com.bluetooth.le.exception.BluetoothOffException;
 import com.bluetooth.le.utils.ByteUtils;
-import com.example.com.bluetooth.le.R;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Represent "Bluetooth low energy" that using to connect to a bluetooth remote device.
@@ -115,7 +97,7 @@ public class FioTBluetoothLE {
     /**
      * Finalize FioTBluetoothLE instance. Use when closing app.
      */
-    protected void end() {
+    public void end() {
         Log.i(TAG, "end");
 
         try {
@@ -192,7 +174,7 @@ public class FioTBluetoothLE {
         }
 
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            mBluetoothGatt = mBluetoothDevice.connectGatt(mContext, false, mBleCallback, BluetoothDevice.TRANSPORT_LE);
+            mBluetoothGatt = mBluetoothDevice.connectGatt(mContext, false, mBleCallback);
         } else {
             mBluetoothGatt = mBluetoothDevice.connectGatt(mContext, false, mBleCallback);
         }
@@ -241,20 +223,18 @@ public class FioTBluetoothLE {
      * @param ch          Characteristic to writeWithQueue
      * @param dataToWrite data to be written
      */
-    public int writeToCharacteristic(BluetoothGattCharacteristic ch, final byte[] dataToWrite) {
+    public boolean writeToCharacteristic(BluetoothGattCharacteristic ch, final byte[] dataToWrite) {
         if (null == ch || mBluetoothGatt == null) {
             Log.i(TAG, "writeToCharacteristic: character "
                     + ch
                     + "mBluetoothGatt = "
                     + mBluetoothGatt);
-            return 1;
+            return false;
         }
 
-        Log.i(TAG, "writeToCharacteristic: " + ByteUtils.toHexString(dataToWrite));
+        Log.i(TAG, "writeToCharacteristic: [" + ch.getUuid() + "], " + ByteUtils.toHexString(dataToWrite));
         ch.setValue(dataToWrite);
-        mBluetoothGatt.writeCharacteristic(ch);
-        ByteUtils.toHexString(dataToWrite);
-        return 0;
+        return mBluetoothGatt.writeCharacteristic(ch);
     }
 
     public interface SendListener {
@@ -429,18 +409,18 @@ public class FioTBluetoothLE {
      *
      * @param ch characteristic that we want to read
      */
-    public void requestCharacteristicValue(BluetoothGattCharacteristic ch) {
+    public boolean requestCharacteristicValue(BluetoothGattCharacteristic ch) {
         if (mBluetoothAdapter == null || mBluetoothGatt == null) {
             Log.d(TAG, "requestCharacteristicValue: " + mBluetoothAdapter + " - " + mBluetoothGatt);
-            return;
+            return false;
         }
 
         Log.i(TAG, "requestCharacteristicValue: ");
-        mBluetoothGatt.readCharacteristic(ch);
+        return mBluetoothGatt.readCharacteristic(ch);
     }
 
     /**
-     * Get a characteristic of Connected device
+     * Get a characteristic of connected device
      *
      * @param uuid characteristic uuid
      * @return characteristic, null if not found
@@ -459,7 +439,7 @@ public class FioTBluetoothLE {
     }
 
     /**
-     * Get RSSI of Connected device.
+     * Get RSSI of connected device.
      * Result will be in @onReadRemoteRSSI(int rssi, int status)
      */
     public void readRSSI() {
@@ -502,6 +482,11 @@ public class FioTBluetoothLE {
 
         if (mBluetoothGatt != null) {
             List<BluetoothGattService> services = mBluetoothGatt.getServices();
+
+            if (services.isEmpty()) {
+                mBluetoothLEListener.onConnectResult(CONNECT_FAIL, BluetoothGatt.GATT_FAILURE);
+                return;
+            }
 
             for (BluetoothGattService service : services) {
                 for (FioTBluetoothService fioTBluetoothService : mWorkingBluetoothService) {
@@ -560,7 +545,7 @@ public class FioTBluetoothLE {
     private BluetoothGattCallback mBleCallback = new BluetoothGattCallback() {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-
+            Log.d(TAG, "onConnectionStateChange() called with: gatt = [" + gatt + "], status = [" + status + "], newState = [" + newState + "]");
             if (newState == BluetoothGatt.STATE_CONNECTED) {
                 Log.i(TAG, "Connected");
                 mIsConnected = true;
@@ -599,7 +584,10 @@ public class FioTBluetoothLE {
                     mBluetoothLEListener.onDisconnected();
                 }
             }
+        }
 
+        public void onConnectionUpdated(final BluetoothGatt gatt, final int interval, final int latency, final int timeout,	final int status) {
+            Log.d(TAG, "onConnectionUpdated() called with: gatt = [" + gatt + "], interval = [" + interval + "], latency = [" + latency + "], timeout = [" + timeout + "], status = [" + status + "]");
         }
 
         @Override
@@ -702,7 +690,7 @@ public class FioTBluetoothLE {
     };
 
     /**
-     * Discovery service of Connected device.
+     * Discovery service of connected device.
      * Result will be in @onServicesDiscovered() callback
      */
     private void startServicesDiscovery() {

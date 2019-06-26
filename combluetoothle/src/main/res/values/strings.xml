@@ -5,4 +5,6 @@
     <string name="exception_icorrect_state">Incorrect state, FiotBluetoothLE is null</string>
     <string name="exception_characteristic_not_found">Characteristic not found</string>
     <string name="bluetooth_not_on">Bluetooth is not ON state</string>
+    <string name="exception_characteristic_do_not_have_property_read">Characteristic do not have property read</string>
+    <string name="exception_characteristic_do_not_have_property_write">Characteristic do not have property write</string>
 </resources>
