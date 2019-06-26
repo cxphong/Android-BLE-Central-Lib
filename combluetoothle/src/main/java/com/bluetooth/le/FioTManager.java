@@ -180,7 +180,11 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
                     getString(R.string.exception_characteristic_not_found) +
                     characUUID);
         }
-
+        if (!ch.isWriteable()) {
+            throw new CharacteristicNotFound(mContext.getResources().
+                    getString(R.string.exception_characteristic_do_not_have_property_write) +
+                    characUUID);
+        }
         /* Split data into multiple packet with size equal DATA_CHUNK */
         int index = 0;
         while (index < data.length) {
@@ -206,7 +210,11 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
                     getString(R.string.exception_characteristic_not_found) +
                     characUUID);
         }
-
+        if (!ch.isWriteable()) {
+            throw new CharacteristicNotFound(mContext.getResources().
+                    getString(R.string.exception_characteristic_do_not_have_property_write) +
+                    characUUID);
+        }
         ble.writeToCharacteristic(getCharacteristic(characUUID).getCharacteristic(), data);
 
     }
@@ -251,16 +259,21 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
     public void read(String characUuid) {
         Log.d(TAG, "read: ");
         BluetoothGattCharacteristic characteristic = getCharacteristic(characUuid).getCharacteristic();
+        FioTBluetoothCharacteristic ch = getCharacteristic(characUuid);
 
         if (characteristic != null) {
-            if (requestHandler != null) {
-                Log.d(TAG, "read: ");
-                RequestData requestData = new RequestData(characteristic, null);
-                Request request = new Request(RequestCmd.READ, requestData);
-                requestHandler.enqueue(request);
-                requestHandler.implRightNow(ble);
+            if (ch.isReadable()) {
+                if (requestHandler != null) {
+                    Log.d(TAG, "read: ");
+                    RequestData requestData = new RequestData(characteristic, null);
+                    Request request = new Request(RequestCmd.READ, requestData);
+                    requestHandler.enqueue(request);
+                    requestHandler.implRightNow(ble);
+                } else {
+                    Log.e(TAG, "read: request handler is null");
+                }
             } else {
-                Log.e(TAG, "read: request handler is null");
+                Log.e(TAG, "read: characteristic don't have property read" + characUuid);
             }
         } else {
             Log.e(TAG, "read: no exist characteristics");
@@ -437,6 +450,7 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
 
     /**
      * Event write a chunk of data completed.
+     *
      * @param cha
      * @param status
      */

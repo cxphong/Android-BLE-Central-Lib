@@ -20,6 +20,7 @@ import com.bluetooth.le.FioTBluetoothService;
 import com.bluetooth.le.FioTManager;
 import com.bluetooth.le.FioTScanManager;
 import com.bluetooth.le.FiotBluetoothInit;
+import com.bluetooth.le._enum.CharacteristicProperty;
 import com.bluetooth.le.exception.CharacteristicNotFound;
 import com.bluetooth.le.exception.NotFromActivity;
 import com.bluetooth.le.exception.NotSupportBleException;
@@ -194,9 +195,15 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
 
                         ArrayList<FioTBluetoothService> services = new ArrayList<FioTBluetoothService>();
                         ArrayList<FioTBluetoothCharacteristic> characteristics2 = new ArrayList<FioTBluetoothCharacteristic>();
-                        characteristics2.add(new FioTBluetoothCharacteristic(CH1_UUID, true));
-                        characteristics2.add(new FioTBluetoothCharacteristic(CH2_UUID, false));
-                        characteristics2.add(new FioTBluetoothCharacteristic(CH3_UUID, false));
+                        characteristics2.add(new FioTBluetoothCharacteristic(CH1_UUID,
+                                CharacteristicProperty.PROPERTY_NOTIFY,
+                                CharacteristicProperty.PROPERTY_READ));
+                        characteristics2.add(new FioTBluetoothCharacteristic(CH2_UUID,
+                                CharacteristicProperty.PROPERTY_NOTIFY,
+                                CharacteristicProperty.PROPERTY_READ));
+                        characteristics2.add(new FioTBluetoothCharacteristic(CH3_UUID,
+                                CharacteristicProperty.PROPERTY_NOTIFY,
+                                CharacteristicProperty.PROPERTY_READ));
                         services.add(new FioTBluetoothService(SERVICE_UUID, characteristics2));
 
                         manager = new FioTManager(MainActivity.this,
