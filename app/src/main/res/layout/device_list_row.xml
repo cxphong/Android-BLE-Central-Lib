@@ -31,27 +31,24 @@
         tools:text="Address"/>
 
     <TextView
-        android:id="@+id/rssi"
+        android:id="@+id/speed"
         android:textColor="@color/name"
         android:layout_below="@id/mac"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        tools:text="-45"/>
+        android:layout_height="wrap_content" />
 
     <Button
         android:text="connect"
         android:textColor="#fafaf9"
         android:id="@+id/buttonConnect"
         android:layout_width="wrap_content"
-        android:layout_height="40dp"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
         android:layout_alignParentRight="true"
 
         android:background="@drawable/mybutton"
         android:gravity="center_vertical|center_horizontal"
-         />
-
         />
-
-
+    />
 
 </RelativeLayout>

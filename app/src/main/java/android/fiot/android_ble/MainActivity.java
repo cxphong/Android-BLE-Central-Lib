@@ -1,7 +1,9 @@
 package android.fiot.android_ble;
 
 import android.bluetooth.BluetoothDevice;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.os.ParcelUuid;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
@@ -37,14 +39,16 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
     private TextView txtNod;
     private static TextView txvS;
     private DevicesAdapter dAdapter;
-    public static List<FioTBluetoothDevice> devicesList = new ArrayList<>();
+    public static List<DeviceItem> deviceItems = new ArrayList<>();
     private FioTScanManager scanManager;
-    private FioTManager manager;
+    private long rxCount;
+    private byte index;
+    private long startEpoch;
+    private long numberLostPacket;
 
-    public static final String SERVICE_UUID = "0000180d-0000-1000-8000-00805f9b34fb";
-    public static final String CH1_UUID = "00002a37-0000-1000-8000-00805f9b34fb";
-    public static final String CH2_UUID = "00002a38-0000-1000-8000-00805f9b34fb";
-    public static final String CH3_UUID = "00002a39-0000-1000-8000-00805f9b34fb";
+    public static final String SERVICE_UUID = "6E400001-B5A3-F393-E0A9-E50E24DCCA9E";
+    public static final String RX_UUID = "6E400002-B5A3-F393-E0A9-E50E24DCCA9E";
+    public static final String TX_UUID = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,7 +60,7 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
 
         txtNod = (TextView) findViewById(R.id.textViewNoD);
         recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
-        dAdapter = new DevicesAdapter(devicesList);
+        dAdapter = new DevicesAdapter(deviceItems);
 
         recyclerView.setHasFixedSize(true);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
@@ -66,6 +70,8 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
         recyclerView.setAdapter(dAdapter);
 
         txvS = (TextView) findViewById(R.id.textViewS);
+
+
         txvS.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -85,6 +91,9 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
         } catch (NotFromActivity notFromActivity) {
             notFromActivity.printStackTrace();
         }
+
+        startScan();
+        txvS.setText("STOP SCAN");
     }
 
     @Override
@@ -106,14 +115,13 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
     private void stopScan() {
         scanManager.stop();
         txvS.setText("START SCAN");
-
     }
 
     private void startScan() {
-        devicesList.clear();
+        deviceItems.clear();
 
         List<ScanFilter> filters = new ArrayList<>();
-        filters.add(new ScanFilter.Builder().setDeviceName("Heart Rate").build());
+        filters.add(new ScanFilter.Builder().setServiceUuid(ParcelUuid.fromString(SERVICE_UUID)).setDeviceName("").build());
         try {
             scanManager.start(filters, null, new FioTScanManager.ScanManagerListener() {
                 @Override
@@ -121,8 +129,8 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            devicesList.add(device);
-                            dAdapter.notifyDataSetChanged();
+                            deviceItems.add(new DeviceItem(device));
+                            showDevices(deviceItems);
                         }
                     });
                 }
@@ -137,8 +145,7 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
         }
     }
 
-    private void showDevices(List<BLEDevice> devicesList) {
-
+    private void showDevices(List<DeviceItem> devicesList) {
         if (devicesList.isEmpty()) {
             txtNod.setVisibility(View.VISIBLE);
             recyclerView.setVisibility(View.INVISIBLE);
@@ -168,54 +175,88 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
     }
 
     public class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.MyViewHolder> {
-
-
-        private List<FioTBluetoothDevice> devicesList;
+        private List<DeviceItem> devicesList;
 
         public class MyViewHolder extends RecyclerView.ViewHolder {
             public TextView name, mac;
-            public TextView rssi;
+            public TextView tvSpeed;
             public Button btnConnect;
             public View view1;
 
-
             public MyViewHolder(View view) {
-
                 super(view);
                 this.view1 = view;
                 name = (TextView) view.findViewById(R.id.name);
                 mac = (TextView) view.findViewById(R.id.mac);
-                rssi = (TextView) view.findViewById(R.id.rssi);
+                tvSpeed = (TextView) view.findViewById(R.id.speed);
                 btnConnect = (Button) view.findViewById(R.id.buttonConnect);
                 btnConnect.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(final View view) {
+                        final DeviceItem deviceItem = devicesList.get((int) view1.getTag());
+                        if (deviceItem != null) {
+                            if (deviceItem.connected) {
+                                if (deviceItem.fioTManager != null) {
+                                    deviceItem.fioTManager.end();
+                                    btnConnect.setText("connect");
+                                    deviceItem.connected = false;
+                                    return;
+                                }
+                            }
+                        }
+
+                        btnConnect.setEnabled(false);
+                        btnConnect.setBackgroundColor(Color.GRAY);
                         Log.i(TAG, "onClick: " + (int) view1.getTag());
-                        scanManager.stop();
+                        stopScan();
 
                         ArrayList<FioTBluetoothService> services = new ArrayList<FioTBluetoothService>();
                         ArrayList<FioTBluetoothCharacteristic> characteristics2 = new ArrayList<FioTBluetoothCharacteristic>();
-                        characteristics2.add(new FioTBluetoothCharacteristic(CH1_UUID,
-                                CharacteristicProperty.PROPERTY_NOTIFY,
-                                CharacteristicProperty.PROPERTY_READ));
-                        characteristics2.add(new FioTBluetoothCharacteristic(CH2_UUID,
-                                CharacteristicProperty.PROPERTY_NOTIFY,
-                                CharacteristicProperty.PROPERTY_READ));
-                        characteristics2.add(new FioTBluetoothCharacteristic(CH3_UUID,
-                                CharacteristicProperty.PROPERTY_NOTIFY,
-                                CharacteristicProperty.PROPERTY_READ));
+                        characteristics2.add(new FioTBluetoothCharacteristic(RX_UUID,
+                                CharacteristicProperty.PROPERTY_WRITE));
+                        characteristics2.add(new FioTBluetoothCharacteristic(TX_UUID,
+                                CharacteristicProperty.PROPERTY_NOTIFY));
                         services.add(new FioTBluetoothService(SERVICE_UUID, characteristics2));
 
-                        manager = new FioTManager(MainActivity.this,
-                                devicesList.get((int) view1.getTag()),
+                        FioTManager manager = new FioTManager(MainActivity.this,
+                                deviceItem.fioTBluetoothDevice,
                                 services);
+                        deviceItem.fioTManager = manager;
                         manager.connect();
 
                         manager.setDataListener(new FioTManager.FioTManagerDataListener() {
                             @Override
                             public void onNotify(FioTBluetoothCharacteristic characteristic) {
-                                Log.i(TAG, "onNotify: " + characteristic.getUuid());
-                                Log.i(TAG, "onNofify: " + ByteUtils.toHexString(characteristic.getCharacteristic().getValue()));
+                                try {
+                                    if (rxCount == 0) {
+                                        startEpoch = System.currentTimeMillis();
+                                    }
+
+                                    if (index != 0) {
+                                        numberLostPacket += calcNumberLostPacket(index, characteristic.getCharacteristic().getValue());
+                                    }
+
+                                    index = characteristic.getCharacteristic().getValue()[0];
+                                    rxCount += characteristic.getCharacteristic().getValue().length;
+
+                                    if (rxCount != characteristic.getCharacteristic().getValue().length) {
+                                        Log.d(TAG, System.currentTimeMillis() + " " + startEpoch);
+                                        final double seconds = (System.currentTimeMillis() - startEpoch) / 1000.0;
+                                        Log.d(TAG, "count = " + rxCount +
+                                                ", second = " + seconds +
+                                                ", speed = " + (rxCount / (seconds) / 1024) + " bytes/s");
+                                        runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                tvSpeed.setText((String.format("%.2f", rxCount / (seconds) / 1024)) + " kb/s, lost: " + numberLostPacket);
+                                            }
+                                        });
+                                    }
+
+                                    Log.i(TAG, "onNofify: " + ByteUtils.toHexString(characteristic.getCharacteristic().getValue()));
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
                             }
 
                             @Override
@@ -236,32 +277,46 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
                             @Override
                             public void onConnectFail(int error) {
                                 Log.i(TAG, "onConnectFail: ");
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        btnConnect.setEnabled(true);
+                                        btnConnect.setBackgroundColor(getResources().getColor(R.color.btnEble));
+                                    }
+                                });
                             }
 
                             @Override
                             public void onConnected() {
-                                try {
-                                    for (int i = 0; i < 100; i++) {
-                                        manager.writeWithQueue(CH3_UUID, "HELLO WORLD!".getBytes());
-                                        manager.read(CH2_UUID);
-                                        manager.writeWithQueue(CH3_UUID, "HELLO WORLD! 1".getBytes());
-                                        manager.read(CH2_UUID);
-                                        manager.writeWithQueue(CH3_UUID, "HELLO WORLD! 2".getBytes());
-                                        manager.read(CH2_UUID);
-                                        manager.writeWithQueue(CH3_UUID, "HELLO WORLD! 3".getBytes());
-                                        manager.read(CH2_UUID);
-                                        manager.writeWithQueue(CH3_UUID, "HELLO WORLD! 4".getBytes());
-                                        manager.read(CH2_UUID);
+                                Log.i(TAG, "onConnected: ");
+                                rxCount = 0;
+                                numberLostPacket = 0;
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        btnConnect.setEnabled(true);
+                                        btnConnect.setText("disconnect");
+                                        btnConnect.setBackgroundColor(getResources().getColor(R.color.btnEble));
                                     }
+                                });
 
-                                } catch (CharacteristicNotFound characteristicNotFound) {
-                                    characteristicNotFound.printStackTrace();
-                                }
+                                deviceItem.connected = true;
                             }
 
                             @Override
                             public void onDisconnected(FioTManager manager) {
+                                Log.i(TAG, "onDisconnected: ");
+                                deviceItem.connected = false;
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        btnConnect.setText("connect");
+//                                        btnConnect.setBackgroundColor(getResources().getColor(R.color.btnEble));
+                                    }
+                                });
+
                             }
+
 
                         });
 
@@ -271,7 +326,7 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
             }
         }
 
-        public DevicesAdapter(List<FioTBluetoothDevice> devicesList) {
+        public DevicesAdapter(List<DeviceItem> devicesList) {
             this.devicesList = devicesList;
         }
 
@@ -279,13 +334,12 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
         public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View itemView = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.device_list_row, parent, false);
-
             return new MyViewHolder(itemView);
         }
 
         @Override
         public void onBindViewHolder(MyViewHolder holder, int position) {
-            FioTBluetoothDevice device = devicesList.get(position);
+            FioTBluetoothDevice device = devicesList.get(position).fioTBluetoothDevice;
             holder.name.setText(device.getBluetoothDevice().getName());
             holder.mac.setText(device.getBluetoothDevice().getAddress());
             holder.view1.setTag(position);
@@ -297,6 +351,24 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
             return devicesList.size();
         }
 
+        public int calcNumberLostPacket(int currentIndex, byte[] packet) {
+            if (packet.length == 0) {
+                return 0;
+            }
+
+            int numberOfLoss;
+            int newIndex = (packet[0] & 0xff);
+
+            if (newIndex < currentIndex) {
+                numberOfLoss = newIndex - currentIndex + 255;
+            } else if (newIndex > currentIndex) {
+                numberOfLoss = newIndex - currentIndex - 1;
+            } else {
+                numberOfLoss = 0;
+            }
+
+            return numberOfLoss;
+        }
 
     }
 }
