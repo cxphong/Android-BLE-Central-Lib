@@ -45,7 +45,6 @@
         android:layout_height="wrap_content"
         android:padding="16dp"
         android:layout_alignParentRight="true"
-
         android:background="@drawable/mybutton"
         android:gravity="center_vertical|center_horizontal"
         />

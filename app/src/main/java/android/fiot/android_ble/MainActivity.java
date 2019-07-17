@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
     public static List<DeviceItem> deviceItems = new ArrayList<>();
     private FioTScanManager scanManager;
     private long rxCount;
-    private byte index;
+    private int index;
     private long startEpoch;
     private long numberLostPacket;
 
@@ -234,9 +234,15 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
 
                                     if (index != 0) {
                                         numberLostPacket += calcNumberLostPacket(index, characteristic.getCharacteristic().getValue());
+
+                                        if (numberLostPacket > 0) {
+                                            Log.i(TAG, "c = " + index +
+                                                    ", new lost packet: " +
+                                                    ByteUtils.toHexString(characteristic.getCharacteristic().getValue()));
+                                        }
                                     }
 
-                                    index = characteristic.getCharacteristic().getValue()[0];
+                                    index = characteristic.getCharacteristic().getValue()[0] & 0xff;
                                     rxCount += characteristic.getCharacteristic().getValue().length;
 
                                     if (rxCount != characteristic.getCharacteristic().getValue().length) {
