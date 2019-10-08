@@ -174,7 +174,7 @@ public class FioTBluetoothLE {
         }
 
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            mBluetoothGatt = mBluetoothDevice.connectGatt(mContext, false, mBleCallback, BluetoothDevice.TRANSPORT_LE);
+            mBluetoothGatt = mBluetoothDevice.connectGatt(mContext, false, mBleCallback, BluetoothDevice.TRANSPORT_LE, BluetoothDevice.PHY_LE_2M);
         }
         else if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             mBluetoothGatt = mBluetoothDevice.connectGatt(mContext, false, mBleCallback, BluetoothDevice.TRANSPORT_LE);

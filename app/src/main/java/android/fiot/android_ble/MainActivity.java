@@ -255,7 +255,7 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
                                         runOnUiThread(new Runnable() {
                                             @Override
                                             public void run() {
-                                                tvSpeed.setText((String.format("%.2f", rxCount / (seconds) / 1024)) + " kb/s, lost: " + numberLostPacket);
+                                                tvSpeed.setText((String.format("%.2f", rxCount*8 / (seconds) / 1024)) + " kb/s, lost: " + numberLostPacket);
                                             }
                                         });
                                     }

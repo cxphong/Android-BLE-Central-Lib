@@ -2,7 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/Android-BLE-Central-Lib.iml" filepath="$PROJECT_DIR$/Android-BLE-Central-Lib.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Android-BLE-Central-Lib1.iml" filepath="$PROJECT_DIR$/Android-BLE-Central-Lib1.iml" />
+      <module fileurl="file://$PROJECT_DIR$/app/Android-BLE-Central-Lib1-app.iml" filepath="$PROJECT_DIR$/app/Android-BLE-Central-Lib1-app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/combluetoothle/Android-BLE-Central-Lib1-combluetoothle.iml" filepath="$PROJECT_DIR$/combluetoothle/Android-BLE-Central-Lib1-combluetoothle.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/combluetoothle/combluetoothle.iml" filepath="$PROJECT_DIR$/combluetoothle/combluetoothle.iml" />
     </modules>
