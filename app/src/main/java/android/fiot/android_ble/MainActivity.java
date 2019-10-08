@@ -119,6 +119,7 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
 
     private void startScan() {
         deviceItems.clear();
+        dAdapter.notifyDataSetChanged();
 
         List<ScanFilter> filters = new ArrayList<>();
         filters.add(new ScanFilter.Builder().setServiceUuid(ParcelUuid.fromString(SERVICE_UUID)).setDeviceName("").build());
