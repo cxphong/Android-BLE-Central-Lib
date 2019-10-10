@@ -62,6 +62,8 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
         void onConnected();
 
         void onDisconnected(FioTManager manager);
+
+        void onStatusChange(int interval);
     }
 
     public interface FioTManagerDataListener {
@@ -482,6 +484,13 @@ public class FioTManager implements FioTBluetoothLE.BluetoothLEListener, FioTBlu
 
         if (connectionListener != null) {
             connectionListener.onConnected();
+        }
+    }
+
+    @Override
+    public void onStatusChange(int interval) {
+        if (connectionListener != null) {
+            connectionListener.onStatusChange(interval);
         }
     }
 

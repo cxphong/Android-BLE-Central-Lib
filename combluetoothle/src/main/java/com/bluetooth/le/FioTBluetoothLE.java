@@ -590,6 +590,7 @@ public class FioTBluetoothLE {
         }
 
         public void onConnectionUpdated(final BluetoothGatt gatt, final int interval, final int latency, final int timeout,	final int status) {
+            mBluetoothLEListener.onStatusChange(interval);
             Log.d(TAG, "onConnectionUpdated() called with: gatt = [" + gatt + "], interval = [" + interval + "], latency = [" + latency + "], timeout = [" + timeout + "], status = [" + status + "]");
         }
 
@@ -737,6 +738,7 @@ public class FioTBluetoothLE {
 
         void onStartListenNotificationComplete();
 
+        void onStatusChange(int interval);
     }
 
     /**

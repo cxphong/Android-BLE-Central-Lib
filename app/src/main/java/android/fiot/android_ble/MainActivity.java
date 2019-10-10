@@ -183,8 +183,9 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
         public class MyViewHolder extends RecyclerView.ViewHolder {
             public TextView name, mac;
             public TextView tvSpeed;
-            public TextView tvSpeed2;
-            public TextView tvSpeedtt;
+            public TextView tvSpeedInterval;
+            public TextView tvSpeedTotal;
+            public TextView tvInterval;
 
             public Button btnConnect;
             public View view1;
@@ -198,8 +199,9 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
                 name = (TextView) view.findViewById(R.id.name);
                 mac = (TextView) view.findViewById(R.id.mac);
                 tvSpeed = (TextView) view.findViewById(R.id.speed);
-                tvSpeed2 = (TextView) view.findViewById(R.id.speed2);
-                tvSpeedtt = (TextView) view.findViewById(R.id.speedtt);
+                tvSpeedInterval = (TextView) view.findViewById(R.id.speed2);
+                tvSpeedTotal = (TextView) view.findViewById(R.id.speedtt);
+                tvInterval = (TextView) view.findViewById(R.id.interval);
 
                 btnConnect = (Button) view.findViewById(R.id.buttonConnect);
                 btnConnect.setOnClickListener(new View.OnClickListener() {
@@ -271,10 +273,9 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
                                             @Override
                                             public void run() {
                                                 tvSpeed.setText((String.format("%.2f", rxCount*8 / (seconds) / 1024)) + " kb/s, lost: " + numberLostPacket);
-                                                tvSpeedtt.setText((String.format("%.2f", rxCountTotal*8 / (secondsTotal) / 1024)) + " kb/s, lost: " + numberLostPacket);
+                                                tvSpeedTotal.setText((String.format("Total: %.2f", rxCountTotal*8 / (secondsTotal) / 1024)) + " kb/s, lost: " + numberLostPacket);
                                                 if(currentTime - startEpoch >= 1000){
-                                                    tvSpeed2.setText((String.format("%.2f", rxCount*8 / (seconds) / 1024)) + " kb/s, lost: " + numberLostPacket);
-                                                    Log.d(TAG,rxCount+"");
+                                                    tvSpeedInterval.setText((String.format("%.2f", rxCount*8 / (seconds) / 1024)) + " kb/s, lost: " + numberLostPacket);
                                                     rxCount = 0;
                                                     startEpoch = currentTime;
                                                 }
@@ -346,6 +347,17 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
                                     }
                                 });
 
+                            }
+
+                            @Override
+                            public void onStatusChange(final int interval) {
+                                Log.i(TAG, "onStatusChange: ");
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        tvInterval.setText("interval: "+interval);
+                                    }
+                                });
                             }
 
 
