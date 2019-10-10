@@ -41,10 +41,10 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
     private DevicesAdapter dAdapter;
     public static List<DeviceItem> deviceItems = new ArrayList<>();
     private FioTScanManager scanManager;
-    private long rxCount;
+    private long rxCountInterval;
     private long rxCountTotal;
     private int index;
-    private long startEpoch;
+    private long startEpochInterval;
     private long startEpochTotal;
     private long numberLostPacket;
 
@@ -244,8 +244,8 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
                                 final long currentTime = System.currentTimeMillis();
 
                                 try {
-                                    if (rxCount == 0) {
-                                        startEpoch = currentTime;
+                                    if (rxCountInterval == 0) {
+                                        startEpochInterval = currentTime;
                                     }
                                     if (rxCountTotal == 0) {
                                         startEpochTotal = currentTime;
@@ -259,25 +259,24 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
                                     }
 
                                     index = characteristic.getCharacteristic().getValue()[0] & 0xff;
-                                    rxCount += characteristic.getCharacteristic().getValue().length;
+                                    rxCountInterval += characteristic.getCharacteristic().getValue().length;
                                     rxCountTotal += characteristic.getCharacteristic().getValue().length;
-                                    //Log.d(TAG,""+(currentTime - averageTime2Notify));
 
-                                    if (rxCount != characteristic.getCharacteristic().getValue().length) {
+                                    if (rxCountInterval != characteristic.getCharacteristic().getValue().length) {
                                         //Log.d(TAG, System.currentTimeMillis() + " " + startEpoch);
-                                        final double seconds = (currentTime - startEpoch) / 1000.0;
+                                        final double secondsInterval = (currentTime - startEpochInterval) / 1000.0;
                                         final double secondsTotal = (currentTime - startEpochTotal) / 1000.0;
 
                                         //Log.d(TAG, "count = " + rxCount + ", second = " + seconds + ", speed = " + (rxCount / (seconds) / 1024) + " bytes/s");
                                         runOnUiThread(new Runnable() {
                                             @Override
                                             public void run() {
-                                                tvSpeed.setText((String.format("%.2f", rxCount*8 / (seconds) / 1024)) + " kb/s, lost: " + numberLostPacket);
+                                                tvSpeed.setText((String.format("%.2f", rxCountInterval*8 / (secondsInterval) / 1024)) + " kb/s, lost: " + numberLostPacket);
                                                 tvSpeedTotal.setText((String.format("Total: %.2f", rxCountTotal*8 / (secondsTotal) / 1024)) + " kb/s, lost: " + numberLostPacket);
-                                                if(currentTime - startEpoch >= 1000){
-                                                    tvSpeedInterval.setText((String.format("%.2f", rxCount*8 / (seconds) / 1024)) + " kb/s, lost: " + numberLostPacket);
-                                                    rxCount = 0;
-                                                    startEpoch = currentTime;
+                                                if((currentTime - startEpochInterval) >= 1000){
+                                                    tvSpeedInterval.setText((String.format("%.2f", rxCountInterval*8 / (secondsInterval) / 1024)) + " kb/s, lost: " + numberLostPacket);
+                                                    rxCountInterval = 0;
+                                                    startEpochInterval = currentTime;
                                                 }
                                             }
                                         });
@@ -321,7 +320,8 @@ public class MainActivity extends AppCompatActivity implements FiotBluetoothInit
                             @Override
                             public void onConnected() {
                                 Log.i(TAG, "onConnected: ");
-                                rxCount = 0;
+                                rxCountInterval = 0;
+                                rxCountTotal = 0;
                                 numberLostPacket = 0;
                                 runOnUiThread(new Runnable() {
                                     @Override
