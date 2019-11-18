@@ -32,10 +32,36 @@
 
     <TextView
         android:id="@+id/speed"
-        android:textColor="@color/name"
+        android:layout_width="276dp"
+        android:layout_height="wrap_content"
         android:layout_below="@id/mac"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:textColor="@color/name" />
+
+    <TextView
+        android:id="@+id/speed2"
+        android:layout_width="278dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/mac"
+        android:layout_marginTop="33dp"
+        android:textColor="@color/name" />
+
+    <TextView
+        android:id="@+id/speedtt"
+        android:layout_width="281dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/mac"
+        android:layout_marginTop="70dp"
+        android:textColor="@color/name" />
+
+    <TextView
+        android:id="@+id/interval"
+        android:layout_width="75dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/mac"
+        android:layout_marginStart="21dp"
+        android:layout_marginTop="41dp"
+        android:layout_toEndOf="@+id/speed2"
+        android:textColor="@color/name" />
 
     <Button
         android:text="connect"

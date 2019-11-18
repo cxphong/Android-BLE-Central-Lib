@@ -173,8 +173,11 @@ public class FioTBluetoothLE {
             }
         }
 
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            mBluetoothGatt = mBluetoothDevice.connectGatt(mContext, false, mBleCallback);
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            mBluetoothGatt = mBluetoothDevice.connectGatt(mContext, false, mBleCallback, BluetoothDevice.TRANSPORT_LE, BluetoothDevice.PHY_LE_2M);
+        }
+        else if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            mBluetoothGatt = mBluetoothDevice.connectGatt(mContext, false, mBleCallback, BluetoothDevice.TRANSPORT_LE);
         } else {
             mBluetoothGatt = mBluetoothDevice.connectGatt(mContext, false, mBleCallback);
         }
@@ -587,6 +590,7 @@ public class FioTBluetoothLE {
         }
 
         public void onConnectionUpdated(final BluetoothGatt gatt, final int interval, final int latency, final int timeout,	final int status) {
+            mBluetoothLEListener.onStatusChange(interval);
             Log.d(TAG, "onConnectionUpdated() called with: gatt = [" + gatt + "], interval = [" + interval + "], latency = [" + latency + "], timeout = [" + timeout + "], status = [" + status + "]");
         }
 
@@ -734,6 +738,7 @@ public class FioTBluetoothLE {
 
         void onStartListenNotificationComplete();
 
+        void onStatusChange(int interval);
     }
 
     /**
